@@ -14,56 +14,56 @@ const menuItems = [
             },
             {
                 icon: "/teacher.png",
-                label: "Teachers",
-                href: "/list/teachers",
+                label: "Terapeuta",
+                href: "/list/terapeutas",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/student.png",
-                label: "Students",
-                href: "/list/students",
+                label: "Pacientes",
+                href: "/list/pacientes",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/parent.png",
-                label: "Parents",
-                href: "/list/parents",
+                label: "Padres",
+                href: "/list/padres",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/subject.png",
-                label: "Subjects",
-                href: "/list/subjects",
+                label: "Terapias",
+                href: "/list/terapias",
                 visible: ["admin"],
             },
             {
                 icon: "/class.png",
-                label: "Classes",
-                href: "/list/classes",
+                label: "Clases",
+                href: "/list/clases",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/lesson.png",
-                label: "Lessons",
-                href: "/list/lessons",
+                label: "Lecciones",
+                href: "/list/lecciones",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/exam.png",
-                label: "Exams",
-                href: "/list/exams",
+                label: "Examenes",
+                href: "/list/examenes",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
                 icon: "/assignment.png",
-                label: "Assignments",
-                href: "/list/assignments",
+                label: "Asignaturas",
+                href: "/list/asignaturas",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
                 icon: "/result.png",
-                label: "Results",
-                href: "/list/results",
+                label: "Resultados",
+                href: "/list/resultados",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
@@ -97,14 +97,14 @@ const menuItems = [
         items: [
             {
                 icon: "/profile.png",
-                label: "Profile",
-                href: "/profile",
+                label: "Perfil",
+                href: "/perfil",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
                 icon: "/setting.png",
-                label: "Settings",
-                href: "/settings",
+                label: "Ajustes",
+                href: "/ajustes",
                 visible: ["admin", "teacher", "student", "parent"],
             },
             {
@@ -119,9 +119,9 @@ const menuItems = [
 
 const Menu = () => {
     return (
-        <div className="mt-4 text-sm">
+        <div className="mt-2 text-sm">
             {menuItems.map((i) => (
-                <div className="flex flex-col gap-2" key={i.title}>
+                <div className="flex flex-col" key={i.title}>
                     <span className="hidden lg:block text-gray-400 font-light my-4">
                         {i.title}
                     </span>
