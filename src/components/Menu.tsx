@@ -14,14 +14,14 @@ const menuItems = [
             },
             {
                 icon: "/teacher.png",
-                label: "Terapeuta",
-                href: "/list/terapeutas",
+                label: "Maestros",
+                href: "/list/maestros",
                 visible: ["admin", "teacher"],
             },
             {
                 icon: "/student.png",
-                label: "Pacientes",
-                href: "/list/pacientes",
+                label: "Estudiantes",
+                href: "/list/estudiantes",
                 visible: ["admin", "teacher"],
             },
             {

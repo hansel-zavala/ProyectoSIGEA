@@ -4,7 +4,7 @@ import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
 import { role, teachersData } from "@/lib/data";
 import prisma from "@/lib/prisma";
-import { Class, Subject, Teacher } from "@prisma/client";
+import { Class, Prisma, Subject, Teacher } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import ParentListPage from "../padres/page";
@@ -99,9 +99,32 @@ const TeacherListPage = async ({
 
     const p = page ? parseInt(page) : 1;
 
+    const query: Prisma.TeacherWhereInput = {};
+
+    if (queryParams){
+        for (const [key, value] of Object.entries(queryParams)){
+            if (value !== undefined){
+                switch (key) {
+                    case "classId":
+                        query.lessons = {
+                            some: {
+                                classId: parseInt(value),
+                            }
+                        };
+                        break;
+                    case "search":
+                        query.name = {
+                            contains: value,
+                        }
+                }
+            }
+        }
+    }
+
     const [data, count] = await prisma.$transaction([
 
         prisma.teacher.findMany({
+            where:query,
             include: {
                 subjects: true,
                 classes: true,
@@ -109,7 +132,7 @@ const TeacherListPage = async ({
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1)
         }),
-        prisma.teacher.count()
+        prisma.teacher.count({where:query})
 
     ])
 
@@ -120,7 +143,7 @@ const TeacherListPage = async ({
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
             {/* TOP */}
             <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
+                <h1 className="hidden md:block text-lg font-semibold">Maestros</h1>
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                     <TableSearch />
                     <div className="flex items-center gap-4 self-end">
