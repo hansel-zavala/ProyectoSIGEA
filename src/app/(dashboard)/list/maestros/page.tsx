@@ -101,9 +101,9 @@ const TeacherListPage = async ({
 
     const query: Prisma.TeacherWhereInput = {};
 
-    if (queryParams){
-        for (const [key, value] of Object.entries(queryParams)){
-            if (value !== undefined){
+    if (queryParams) {
+        for (const [key, value] of Object.entries(queryParams)) {
+            if (value !== undefined) {
                 switch (key) {
                     case "classId":
                         query.lessons = {
@@ -116,6 +116,9 @@ const TeacherListPage = async ({
                         query.name = {
                             contains: value,
                         }
+                        break;
+                    default:
+                        break;
                 }
             }
         }
@@ -124,7 +127,7 @@ const TeacherListPage = async ({
     const [data, count] = await prisma.$transaction([
 
         prisma.teacher.findMany({
-            where:query,
+            where: query,
             include: {
                 subjects: true,
                 classes: true,
@@ -132,7 +135,7 @@ const TeacherListPage = async ({
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1)
         }),
-        prisma.teacher.count({where:query})
+        prisma.teacher.count({ where: query })
 
     ])
 
@@ -165,7 +168,7 @@ const TeacherListPage = async ({
             {/* LIST */}
             <Table columns={columns} renderRow={renderRow} data={data} />
             {/* PAGINATION */}
-            <Pagination page={p} count={count}/>
+            <Pagination page={p} count={count} />
         </div>
     );
 };
