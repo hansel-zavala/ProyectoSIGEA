@@ -32,8 +32,8 @@ const menuItems = [
             },
             {
                 icon: "/subject.png",
-                label: "Terapias",
-                href: "/list/terapias",
+                label: "Grados",
+                href: "/list/grado",
                 visible: ["admin"],
             },
             {
