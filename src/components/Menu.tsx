@@ -1,4 +1,4 @@
-import { role } from "@/lib/data";
+import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -10,25 +10,25 @@ const menuItems = [
                 icon: "/home.png",
                 label: "Home",
                 href: "/",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
-                icon: "/teacher.png",
+                icon: "/maestro.png",
                 label: "Maestros",
                 href: "/list/maestros",
-                visible: ["admin", "teacher"],
+                visible: ["admin", "maestro"],
             },
             {
-                icon: "/student.png",
+                icon: "/estudiante.png",
                 label: "Estudiantes",
                 href: "/list/estudiantes",
-                visible: ["admin", "teacher"],
+                visible: ["admin", "maestro"],
             },
             {
-                icon: "/parent.png",
+                icon: "/padre.png",
                 label: "Padres",
                 href: "/list/padres",
-                visible: ["admin", "teacher"],
+                visible: ["admin", "maestro"],
             },
             {
                 icon: "/subject.png",
@@ -40,55 +40,55 @@ const menuItems = [
                 icon: "/class.png",
                 label: "Clases",
                 href: "/list/clases",
-                visible: ["admin", "teacher"],
+                visible: ["admin", "maestro"],
             },
             {
                 icon: "/lesson.png",
                 label: "Lecciones",
                 href: "/list/lecciones",
-                visible: ["admin", "teacher"],
+                visible: ["admin", "maestro"],
             },
             {
                 icon: "/exam.png",
                 label: "Examenes",
                 href: "/list/examenes",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/assignment.png",
                 label: "Asignaturas",
                 href: "/list/asignaturas",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/result.png",
                 label: "Resultados",
                 href: "/list/resultados",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/attendance.png",
                 label: "Attendance",
                 href: "/list/attendance",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/calendar.png",
                 label: "Events",
                 href: "/list/events",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/message.png",
                 label: "Messages",
                 href: "/list/messages",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/announcement.png",
                 label: "Announcements",
                 href: "/list/announcements",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
         ],
     },
@@ -99,29 +99,31 @@ const menuItems = [
                 icon: "/profile.png",
                 label: "Perfil",
                 href: "/perfil",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/setting.png",
                 label: "Ajustes",
                 href: "/ajustes",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/logout.png",
                 label: "Logout",
                 href: "/logout",
-                visible: ["admin", "teacher", "student", "parent"],
+                visible: ["admin", "maestro", "estudiante", "padre"],
             },
         ],
     },
 ];
 
-const Menu = () => {
+const Menu = async () => {
+    const user = await currentUser();
+    const role = user?.publicMetadata.role as string;
     return (
-        <div className="mt-2 text-sm">
+        <div className="mt-4 text-sm">
             {menuItems.map((i) => (
-                <div className="flex flex-col" key={i.title}>
+                <div className="flex flex-col gap-2" key={i.title}>
                     <span className="hidden lg:block text-gray-400 font-light my-4">
                         {i.title}
                     </span>
@@ -131,7 +133,7 @@ const Menu = () => {
                                 <Link
                                     href={item.href}
                                     key={item.label}
-                                    className="flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-SkyLight"
+                                    className="flex items-center justify-center lg:justify-start gap-4 text-gray-500 py-2 md:px-2 rounded-md hover:bg-lamaSkyLight"
                                 >
                                     <Image src={item.icon} alt="" width={20} height={20} />
                                     <span className="hidden lg:block">{item.label}</span>
