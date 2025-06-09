@@ -68,14 +68,14 @@ const menuItems = [
             },
             {
                 icon: "/attendance.png",
-                label: "Attendance",
-                href: "/list/attendance",
+                label: "Asistencia",
+                href: "/list/asistencia",
                 visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
                 icon: "/calendar.png",
-                label: "Events",
-                href: "/list/events",
+                label: "Eventos",
+                href: "/list/eventos",
                 visible: ["admin", "maestro", "estudiante", "padre"],
             },
             {
@@ -86,8 +86,8 @@ const menuItems = [
             },
             {
                 icon: "/announcement.png",
-                label: "Announcements",
-                href: "/list/announcements",
+                label: "Anuncios",
+                href: "/list/anuncios",
                 visible: ["admin", "maestro", "estudiante", "padre"],
             },
         ],
