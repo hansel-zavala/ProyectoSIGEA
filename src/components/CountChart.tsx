@@ -8,21 +8,21 @@ import {
 } from "recharts";
 
 
-const CountChart = ({ boys, girls }: { boys: number; girls: number }) => {
+const CountChart = ({ niños, niñas }: { niños: number; niñas: number }) => {
     const data = [
         {
             name: "Total",
-            count: boys + girls,
+            count: niños + niñas,
             fill: "white",
         },
         {
-            name: "Girls",
-            count: girls,
+            name: "niñas",
+            count: niñas,
             fill: "#FAE27C",
         },
         {
-            name: "Boys",
-            count: boys,
+            name: "niños",
+            count: niños,
             fill: "#C3EBFA",
         },
     ];

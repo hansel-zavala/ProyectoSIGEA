@@ -4,19 +4,19 @@ import Image from "next/image";
 const UserCard = async ({
     type,
 }: {
-    type: "admin" | "teacher" | "student" | "parent";
+    type: "admin" | "maestro" | "alumno" | "padre";
 }) => {
     const modelMap: Record<typeof type, any> = {
         admin: prisma.admin,
-        teacher: prisma.teacher,
-        student: prisma.student,
-        parent: prisma.parent,
+        maestro: prisma.maestro,
+        alumno: prisma.alumno,
+        padre: prisma.padre,
     };
 
     const data = await modelMap[type].count();
 
     return (
-        <div className="rounded-2xl odd:bg-Purple even:bg-Yellow p-4 flex-1 min-w-[130px]">
+        <div className="rounded-2xl odd:bg-lamaPurple even:bg-lamaYellow p-4 flex-1 min-w-[130px]">
             <div className="flex justify-between items-center">
                 <span className="text-[10px] bg-white px-2 py-1 rounded-full text-green-600">
                     2024/25

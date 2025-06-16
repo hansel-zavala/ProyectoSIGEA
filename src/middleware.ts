@@ -9,10 +9,10 @@ const matchers = Object.keys(routeAccessMap).map((route) => ({
 
 console.log(matchers);
 
-export default clerkMiddleware(async (auth, req) => {
+export default clerkMiddleware((auth, req) => {
     // if (isProtectedRoute(req)) auth().protect()
 
-    const { sessionClaims } = await auth();
+    const { sessionClaims } = auth();
 
     const role = (sessionClaims?.metadata as { role?: string })?.role;
 
@@ -21,7 +21,6 @@ export default clerkMiddleware(async (auth, req) => {
             return NextResponse.redirect(new URL(`/${role}`, req.url));
         }
     }
-
 });
 
 export const config = {
