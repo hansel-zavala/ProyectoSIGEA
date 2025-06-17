@@ -1,80 +1,79 @@
+// Importa la instancia de Prisma para consultas a la base de datos
 import prisma from "@/lib/prisma";
+
+// Importa el componente FormModal para mostrar formularios modales
 import FormModal from "./FormModal";
+
+// Importa la función de autenticación del servidor con Clerk
 import { auth } from "@clerk/nextjs/server";
 
+// Define el tipo de las props que recibe el componente FormContainer
 export type FormContainerProps = {
+    // Define las tablas permitidas para el formulario
     table:
     | "maestro"
-    | "student"
-    | "parent"
-    | "subject"
-    | "class"
-    | "lesson"
-    | "exam"
-    | "assignment"
-    | "result"
-    | "attendance"
+    | "alumno"
+    | "padre"
     | "evento"
-    | "anuncio";
+    // Define los tipos de operación permitidos
     type: "create" | "update" | "delete";
+    // Datos opcionales para prellenar el formulario
     data?: any;
+    // ID opcional (para update o delete)
     id?: number | string;
 };
 
+// Componente asíncrono que maneja datos y muestra el FormModal
 const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
+
+    // Objeto para guardar datos relacionados necesarios para formularios
     let relatedData = {};
 
+    // Obtiene información del usuario autenticado (id y claims)
     const { userId, sessionClaims } = auth();
+
+    // Extrae el rol del usuario desde los metadata del sessionClaims
     const role = (sessionClaims?.metadata as { role?: string })?.role;
+
+    // Guarda el id actual del usuario
     const currentUserId = userId;
 
-    // if (type !== "delete") {
-    //     switch (table) {
-    //         case "subject":
-    //             const subjectTeachers = await prisma.teacher.findMany({
-    //                 select: { id: true, name: true, surname: true },
-    //             });
-    //             relatedData = { teachers: subjectTeachers };
-    //             break;
-    //         case "class":
-    //             const classGrades = await prisma.grade.findMany({
-    //                 select: { id: true, level: true },
-    //             });
-    //             const classTeachers = await prisma.teacher.findMany({
-    //                 select: { id: true, name: true, surname: true },
-    //             });
-    //             relatedData = { teachers: classTeachers, grades: classGrades };
-    //             break;
-    //         case "teacher":
-    //             const teacherSubjects = await prisma.subject.findMany({
-    //                 select: { id: true, name: true },
-    //             });
-    //             relatedData = { subjects: teacherSubjects };
-    //             break;
-    //         case "student":
-    //             const studentGrades = await prisma.grade.findMany({
-    //                 select: { id: true, level: true },
-    //             });
-    //             const studentClasses = await prisma.class.findMany({
-    //                 include: { _count: { select: { students: true } } },
-    //             });
-    //             relatedData = { classes: studentClasses, grades: studentGrades };
-    //             break;
-    //         case "exam":
-    //             const examLessons = await prisma.lesson.findMany({
-    //                 where: {
-    //                     ...(role === "teacher" ? { teacherId: currentUserId! } : {}),
-    //                 },
-    //                 select: { id: true, name: true },
-    //             });
-    //             relatedData = { lessons: examLessons };
-    //             break;
+    // Si la operación NO es eliminar, busca datos relacionados según la tabla
+    if (type !== "delete") {
+        switch (table) {
+            // Si la tabla es alumno, busca maestros activos para el formulario
+            case "alumno":
+                // Consulta a Prisma para obtener maestros con estado "activo"
+                const maestros = await prisma.maestro.findMany({
+                    where: { estado: "activo" },
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
+                        tipoProfesional: true
+                    },
+                });
+                // Guarda los maestros en relatedData para pasarlos al formulario
+                relatedData = { maestros };
+                break;
 
-    //         default:
-    //             break;
-    //     }
-    // }
+            // Para maestro no se agrega data relacionada (por ahora)
+            case "maestro":
+                // Se puede agregar data relacionada si es necesario
+                break;
 
+            // Para padre no se agrega data relacionada (por ahora)
+            case "padre":
+                // Se puede agregar data relacionada si es necesario
+                break;
+
+            // Default en caso de tabla no contemplada
+            default:
+                break;
+        }
+    }
+
+    // Retorna el componente FormModal con los props recibidos y los datos relacionados
     return (
         <div className="">
             <FormModal
@@ -88,4 +87,5 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
     );
 };
 
+// Exporta el componente para usarlo en otras partes
 export default FormContainer;

@@ -109,16 +109,11 @@ model Alumno {
   genero                    String?                  @db.VarChar(10)
   documentoIdentidad        String?                  @map("documento_identidad") @db.VarChar(20)
   lugarDeNacimiento         String                   @map("lugar_de_nacimiento") @db.VarChar(150)
-  telefonoMovil             String?                  @map("telefono_movil") @db.VarChar(20)
   email                     String?                  @db.VarChar(100)
-  estadoCivil               String?                  @map("estado_civil") @db.VarChar(20)
-  institucionProcedencia    String                   @map("institucion_procedencia") @db.VarChar(100)
+  institucionProcedencia    String?                  @map("institucion_procedencia") @db.VarChar(100)
   a_o_de_ingreso            Int?                     @map("año_de_ingreso") @db.Year
-  carrera                   String?                  @db.VarChar(100)
   estado                    EstadoAlumno?            @default(activo)
   jornadaActual             Jornada?                 @default(matutina) @map("jornada_actual")
-  nombreContactoEmergencia  String?                  @map("nombre_contacto_emergencia") @db.VarChar(100)
-  telefonoEmergencia        String?                  @map("telefono_emergencia") @db.VarChar(20)
   recibioEvaluacion         Boolean?                 @default(false) @map("recibio_evaluacion")
   fechaEvaluacion           DateTime?                @map("fecha_evaluacion") @db.Date
   usaMedicamentos           Boolean?                 @default(false) @map("usa_medicamentos")

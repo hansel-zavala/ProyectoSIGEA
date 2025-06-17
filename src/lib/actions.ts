@@ -1,468 +1,261 @@
+// Indicamos que este código se ejecuta en el servidor (Next.js)
 "use server";
 
+// Importamos función para forzar recarga de página y actualizar datos
 import { revalidatePath } from "next/cache";
-import {
-  ClassSchema,
-  ExamSchema,
-  StudentSchema,
-  SubjectSchema,
-  TeacherSchema,
-} from "./formValidationSchemas";
+// Importamos Zod para validación de datos
+import { z } from "zod";
+// Importamos instancia de Prisma para la base de datos
 import prisma from "./prisma";
+// Importamos cliente de Clerk para manejo de usuarios
 import { clerkClient } from "@clerk/nextjs/server";
 
+// Definimos tipo para manejar estados de éxito o error
 type CurrentState = { success: boolean; error: boolean };
 
-export const createSubject = async (
-  currentState: CurrentState,
-  data: SubjectSchema
-) => {
-  try {
-    await prisma.subject.create({
-      data: {
-        name: data.name,
-        teachers: {
-          connect: data.teachers.map((teacherId) => ({ id: teacherId })),
-        },
-      },
-    });
+// Definimos esquema de validación para Alumno usando Zod
+export const alumnoSchema = z.object({
+    // ID opcional (para update)
+    id: z.number().optional(),
+    // ID de usuario Clerk opcional
+    idusuario: z.string().optional(),
+    // Nombre obligatorio, mínimo 1 carácter
+    nombre: z.string().min(1, { message: "Nombre es requerido!" }),
+    // Apellido obligatorio, mínimo 1 carácter
+    apellido: z.string().min(1, { message: "Apellido es requerido!" }),
+    // Fecha de nacimiento obligatoria, convertida a Date
+    fechaDeNacimiento: z.coerce.date({ message: "Fecha de nacimiento es requerida!" }),
+    // Género opcional
+    genero: z.string().optional(),
+    // Documento de identidad opcional
+    documentoIdentidad: z.string().optional(),
+    // Lugar de nacimiento obligatorio, mínimo 1 carácter
+    lugarDeNacimiento: z.string().min(1, { message: "Lugar de nacimiento es requerido!" }),
+    // Teléfono móvil opcional
+    // telefonoMovil: z.string().optional(),
+    // Email opcional, debe ser válido o vacío
+    // email: z.string().email({ message: "Email inválido!" }).optional().or(z.literal("")),
+    // Estado civil opcional
+    // estadoCivil: z.string().optional(),
+    // Institución de procedencia obligatoria, mínimo 1 carácter
+    institucionProcedencia: z.string().min(1, { message: "Institución de procedencia es requerida!" }),
+    // Año de ingreso opcional
+    a_o_de_ingreso: z.number().optional(),
+    // Carrera opcional
+    // carrera: z.string().optional(),
+    // Estado del alumno opcional, debe ser uno de los valores permitidos
+    estado: z.enum(["activo", "inactivo", "graduado", "retirado"]).optional(),
+    // Jornada actual opcional, uno de los valores permitidos
+    jornadaActual: z.enum(["matutina", "vespertina"]).optional(),
+    // Nombre contacto emergencia opcional
+    // nombreContactoEmergencia: z.string().optional(),
+    // Teléfono emergencia opcional
+    // telefonoEmergencia: z.string().optional(),
+    // Booleano si recibió evaluación, opcional
+    recibioEvaluacion: z.boolean().optional(),
+    // Fecha de evaluación opcional, convertida a Date
+    fechaEvaluacion: z.coerce.date().optional(),
+    // Booleano si usa medicamentos, opcional
+    usaMedicamentos: z.boolean().optional(),
+    // Detalles de medicamentos opcional
+    medicamentosDetalle: z.string().optional(),
+    // Booleano si tiene alergias, opcional
+    alergias: z.boolean().optional(),
+    // Detalles de alergias opcional
+    alergiasDetalle: z.string().optional(),
+    // Observaciones médicas opcional
+    observacionesMedicas: z.string().optional(),
+    // ID de dirección opcional
+    direccionId: z.number().optional(),
+    // ID del maestro actual opcional
+    // maestroActualId: z.number().optional(),
+});
 
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
+// Definimos un tipo TypeScript basado en el esquema de Zod
+export type AlumnoSchema = z.infer<typeof alumnoSchema>;
+
+// Función para crear un alumno nuevo, recibe estado y datos del alumno más username y password
+export const createAlumno = async (
+    currentState: CurrentState,
+    data: AlumnoSchema
+    // & { username: string; password: string }
+) => {
+    try {
+        // Creamos un usuario en Clerk con username, password, nombre y apellido
+        // const user = await clerkClient.users.createUser({
+        //     username: data.username,
+        //     password: data.password,
+        //     firstName: data.nombre,
+        //     lastName: data.apellido,
+        //     publicMetadata: { role: "alumno" } // Asignamos rol público "alumno"
+        // });
+
+        // Guardamos el ID de dirección si existe (en este código no se crea dirección nueva)
+        let direccionId = data.direccionId;
+
+        // Creamos el registro del alumno en la base de datos Prisma
+        await prisma.alumno.create({
+            data: {
+                // Asociamos el idusuario de Clerk creado arriba
+                // idusuario: user.id,
+                // Resto de campos que vienen del formulario / data
+                nombre: data.nombre,
+                apellido: data.apellido,
+                fechaDeNacimiento: data.fechaDeNacimiento,
+                genero: data.genero,
+                documentoIdentidad: data.documentoIdentidad,
+                lugarDeNacimiento: data.lugarDeNacimiento,
+                // telefonoMovil: data.telefonoMovil,
+                // email: data.email || null, // Email o null si vacío
+                // estadoCivil: data.estadoCivil,
+                institucionProcedencia: data.institucionProcedencia,
+                a_o_de_ingreso: data.a_o_de_ingreso,
+                // carrera: data.carrera,
+                // Estado por defecto "activo" si no se manda
+                estado: data.estado || "activo",
+                // Jornada por defecto "matutina" si no se manda
+                jornadaActual: data.jornadaActual || "matutina",
+                // nombreContactoEmergencia: data.nombreContactoEmergencia,
+                // telefonoEmergencia: data.telefonoEmergencia,
+                // Booleanos que default a false si no vienen
+                recibioEvaluacion: data.recibioEvaluacion || false,
+                fechaEvaluacion: data.fechaEvaluacion,
+                usaMedicamentos: data.usaMedicamentos || false,
+                medicamentosDetalle: data.medicamentosDetalle,
+                alergias: data.alergias || false,
+                alergiasDetalle: data.alergiasDetalle,
+                observacionesMedicas: data.observacionesMedicas,
+                direccionId: direccionId,
+                // maestroActualId: data.maestroActualId,
+            },
+        });
+
+        // Indicamos a Next.js que vuelva a generar la página con la lista actualizada
+        revalidatePath("/lista/alumnos");
+        // Retornamos que fue exitoso
+        return { success: true, error: false };
+    } catch (err) {
+        // Si algo falla, lo mostramos en consola
+        console.log(err);
+        // Indicamos error
+        return { success: false, error: true };
+    }
 };
 
-export const updateSubject = async (
-  currentState: CurrentState,
-  data: SubjectSchema
+// Función para actualizar un alumno existente, recibe estado y datos del alumno (id requerido)
+export const updateAlumno = async (
+    currentState: CurrentState,
+    data: AlumnoSchema
+    // & { username?: string; password?: string }
 ) => {
-  try {
-    await prisma.subject.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        name: data.name,
-        teachers: {
-          set: data.teachers.map((teacherId) => ({ id: teacherId })),
-        },
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteSubject = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-  try {
-    await prisma.subject.delete({
-      where: {
-        id: parseInt(id),
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const createClass = async (
-  currentState: CurrentState,
-  data: ClassSchema
-) => {
-  try {
-    await prisma.class.create({
-      data,
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const updateClass = async (
-  currentState: CurrentState,
-  data: ClassSchema
-) => {
-  try {
-    await prisma.class.update({
-      where: {
-        id: data.id,
-      },
-      data,
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteClass = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-  try {
-    await prisma.class.delete({
-      where: {
-        id: parseInt(id),
-      },
-    });
-
-    // revalidatePath("/list/class");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const createTeacher = async (
-  currentState: CurrentState,
-  data: TeacherSchema
-) => {
-  try {
-    const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
-      publicMetadata:{role:"teacher"}
-    });
-
-    await prisma.teacher.create({
-      data: {
-        id: user.id,
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
-        birthday: data.birthday,
-        subjects: {
-          connect: data.subjects?.map((subjectId: string) => ({
-            id: parseInt(subjectId),
-          })),
-        },
-      },
-    });
-
-    // revalidatePath("/list/teachers");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const updateTeacher = async (
-  currentState: CurrentState,
-  data: TeacherSchema
-) => {
-  if (!data.id) {
-    return { success: false, error: true };
-  }
-  try {
-    const user = await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      ...(data.password !== "" && { password: data.password }),
-      firstName: data.name,
-      lastName: data.surname,
-    });
-
-    await prisma.teacher.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        ...(data.password !== "" && { password: data.password }),
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
-        birthday: data.birthday,
-        subjects: {
-          set: data.subjects?.map((subjectId: string) => ({
-            id: parseInt(subjectId),
-          })),
-        },
-      },
-    });
-    // revalidatePath("/list/teachers");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteTeacher = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-  try {
-    await clerkClient.users.deleteUser(id);
-
-    await prisma.teacher.delete({
-      where: {
-        id: id,
-      },
-    });
-
-    // revalidatePath("/list/teachers");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const createStudent = async (
-  currentState: CurrentState,
-  data: StudentSchema
-) => {
-  console.log(data);
-  try {
-    const classItem = await prisma.class.findUnique({
-      where: { id: data.classId },
-      include: { _count: { select: { students: true } } },
-    });
-
-    if (classItem && classItem.capacity === classItem._count.students) {
-      return { success: false, error: true };
+    // Si no envían ID, no podemos actualizar
+    if (!data.id) {
+        return { success: false, error: true };
     }
 
-    const user = await clerkClient.users.createUser({
-      username: data.username,
-      password: data.password,
-      firstName: data.name,
-      lastName: data.surname,
-      publicMetadata:{role:"student"}
-    });
+    try {
+        // Buscamos el alumno existente en la base de datos
+        const existingAlumno = await prisma.alumno.findUnique({
+            where: { id: data.id }
+        });
 
-    await prisma.student.create({
-      data: {
-        id: user.id,
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
-        birthday: data.birthday,
-        gradeId: data.gradeId,
-        classId: data.classId,
-        parentId: data.parentId,
-      },
-    });
+        // Si no existe alumno con ese id, retornamos error
+        if (!existingAlumno) {
+            return { success: false, error: true };
+        }
 
-    // revalidatePath("/list/students");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
+        // Si existe usuario en Clerk y mandan username o password, actualizamos usuario en Clerk
+        // if (existingAlumno.idusuario && (data.username || data.password)) {
+        //     await clerkClient.users.updateUser(existingAlumno.idusuario, {
+        //         ...(data.username && { username: data.username }), // Solo si mandan username
+        //         ...(data.password && data.password !== "" && { password: data.password }), // Solo si mandan password no vacío
+        //         firstName: data.nombre,
+        //         lastName: data.apellido,
+        //     });
+        // }
+
+        // Actualizamos datos del alumno en Prisma DB
+        await prisma.alumno.update({
+            where: {
+                id: data.id,
+            },
+            data: {
+                nombre: data.nombre,
+                apellido: data.apellido,
+                fechaDeNacimiento: data.fechaDeNacimiento,
+                genero: data.genero,
+                documentoIdentidad: data.documentoIdentidad,
+                lugarDeNacimiento: data.lugarDeNacimiento,
+                // telefonoMovil: data.telefonoMovil,
+                // email: data.email || null,
+                // estadoCivil: data.estadoCivil,
+                institucionProcedencia: data.institucionProcedencia,
+                a_o_de_ingreso: data.a_o_de_ingreso,
+                // carrera: data.carrera,
+                estado: data.estado,
+                jornadaActual: data.jornadaActual,
+                // nombreContactoEmergencia: data.nombreContactoEmergencia,
+                // telefonoEmergencia: data.telefonoEmergencia,
+                recibioEvaluacion: data.recibioEvaluacion,
+                fechaEvaluacion: data.fechaEvaluacion,
+                usaMedicamentos: data.usaMedicamentos,
+                medicamentosDetalle: data.medicamentosDetalle,
+                alergias: data.alergias,
+                alergiasDetalle: data.alergiasDetalle,
+                observacionesMedicas: data.observacionesMedicas,
+                direccionId: data.direccionId,
+                // maestroActualId: data.maestroActualId,
+            },
+        });
+
+        // Forzamos que la página con la lista se actualice para reflejar cambios
+        revalidatePath("/lista/alumnos");
+        // Retornamos éxito
+        return { success: true, error: false };
+    } catch (err) {
+        // Mostramos error si algo falla
+        console.log(err);
+        return { success: false, error: true };
+    }
 };
 
-export const updateStudent = async (
-  currentState: CurrentState,
-  data: StudentSchema
+// Función para eliminar un alumno, recibe estado y un FormData con el id del alumno a borrar
+export const deleteAlumno = async (
+    currentState: CurrentState,
+    data: FormData
 ) => {
-  if (!data.id) {
-    return { success: false, error: true };
-  }
-  try {
-    const user = await clerkClient.users.updateUser(data.id, {
-      username: data.username,
-      ...(data.password !== "" && { password: data.password }),
-      firstName: data.name,
-      lastName: data.surname,
-    });
+    // Sacamos el id de alumno del FormData
+    const id = data.get("id") as string;
+    try {
+        // Buscamos alumno para obtener el idusuario
+        const alumno = await prisma.alumno.findUnique({
+            where: { id: parseInt(id) }
+        });
 
-    await prisma.student.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        ...(data.password !== "" && { password: data.password }),
-        username: data.username,
-        name: data.name,
-        surname: data.surname,
-        email: data.email || null,
-        phone: data.phone || null,
-        address: data.address,
-        img: data.img || null,
-        bloodType: data.bloodType,
-        sex: data.sex,
-        birthday: data.birthday,
-        gradeId: data.gradeId,
-        classId: data.classId,
-        parentId: data.parentId,
-      },
-    });
-    // revalidatePath("/list/students");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
+        // Si no existe alumno con ese id, retornamos error
+        if (!alumno) {
+            return { success: false, error: true };
+        }
 
-export const deleteStudent = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-  try {
-    await clerkClient.users.deleteUser(id);
+        // Si tiene usuario asociado en Clerk, lo borramos también
+        if (alumno.idusuario) {
+            await clerkClient.users.deleteUser(alumno.idusuario);
+        }
 
-    await prisma.student.delete({
-      where: {
-        id: id,
-      },
-    });
+        // Borramos el alumno de la base de datos
+        await prisma.alumno.delete({
+            where: {
+                id: parseInt(id),
+            },
+        });
 
-    // revalidatePath("/list/students");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const createExam = async (
-  currentState: CurrentState,
-  data: ExamSchema
-) => {
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    // if (role === "teacher") {
-    //   const teacherLesson = await prisma.lesson.findFirst({
-    //     where: {
-    //       teacherId: userId!,
-    //       id: data.lessonId,
-    //     },
-    //   });
-
-    //   if (!teacherLesson) {
-    //     return { success: false, error: true };
-    //   }
-    // }
-
-    await prisma.exam.create({
-      data: {
-        title: data.title,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        lessonId: data.lessonId,
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const updateExam = async (
-  currentState: CurrentState,
-  data: ExamSchema
-) => {
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    // if (role === "teacher") {
-    //   const teacherLesson = await prisma.lesson.findFirst({
-    //     where: {
-    //       teacherId: userId!,
-    //       id: data.lessonId,
-    //     },
-    //   });
-
-    //   if (!teacherLesson) {
-    //     return { success: false, error: true };
-    //   }
-    // }
-
-    await prisma.exam.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        title: data.title,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        lessonId: data.lessonId,
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
-};
-
-export const deleteExam = async (
-  currentState: CurrentState,
-  data: FormData
-) => {
-  const id = data.get("id") as string;
-
-  // const { userId, sessionClaims } = auth();
-  // const role = (sessionClaims?.metadata as { role?: string })?.role;
-
-  try {
-    await prisma.exam.delete({
-      where: {
-        id: parseInt(id),
-        // ...(role === "teacher" ? { lesson: { teacherId: userId! } } : {}),
-      },
-    });
-
-    // revalidatePath("/list/subjects");
-    return { success: true, error: false };
-  } catch (err) {
-    console.log(err);
-    return { success: false, error: true };
-  }
+        // Forzamos que la página con la lista se actualice
+        revalidatePath("/lista/alumnos");
+        // Retornamos éxito
+        return { success: true, error: false };
+    } catch (err) {
+        // Mostramos error si falla algo
+        console.log(err);
+        return { success: false, error: true };
+    }
 };
