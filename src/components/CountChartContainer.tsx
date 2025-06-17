@@ -8,8 +8,8 @@ const CountChartContainer = async () => {
         _count: true,
     });
 
-    const niños = data.find((d) => d.genero === "Masculino")?._count || 0;
-    const niñas = data.find((d) => d.genero === "Femenino")?._count || 0;
+    const niños = data.find((d) => d.genero === "masculino")?._count || 0;
+    const niñas = data.find((d) => d.genero === "femenino")?._count || 0;
 
     return (
         <div className="bg-white rounded-xl w-full h-full p-4">
