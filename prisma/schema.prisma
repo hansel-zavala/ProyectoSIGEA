@@ -21,7 +21,7 @@ model alumno {
   nombre                  String                 @db.VarChar(50)
   apellido                String                 @db.VarChar(50)
   fecha_de_nacimiento     DateTime               @db.Date
-  genero                  String?                @db.VarChar(10)
+  genero                  genero
   documento_identidad     String?                @db.VarChar(20)
   lugar_de_nacimiento     String                 @db.VarChar(150)
   institucion_procedencia String                 @db.VarChar(100)
@@ -94,6 +94,11 @@ enum admin_estado {
   activo
   inactivo
   suspendido
+}
+
+enum genero {
+  masculino
+  femenino
 }
 
 enum eventos_tipo_evento {

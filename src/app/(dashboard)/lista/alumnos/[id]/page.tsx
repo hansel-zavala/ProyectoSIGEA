@@ -1,192 +1,153 @@
-import Announcements from "@/components/Anuncios";
-import BigCalendarContainer from "@/components/BigCalendarContainer";
 import FormContainer from "@/components/FormContainer";
-import Performance from "@/components/Performance";
-import StudentAttendanceCard from "@/components/StudentAttendanceCard";
 import prisma from "@/lib/prisma";
-import { auth } from "@clerk/nextjs/server";
-import { Alumno } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { auth } from "@clerk/nextjs/server";
+
+type Alumno = {
+    id: number;
+    idusuario?: string;
+    nombre: string;
+    apellido: string;
+    fecha_de_nacimiento: string; // ISO string date
+    genero: "masculino" | "femenino";
+    documento_identidad?: string | null;
+    lugar_de_nacimiento: string;
+    institucion_procedencia: string;
+    a_o_de_ingreso?: number | null;
+    estado?: string;
+    jornada_actual?: string;
+    recibio_evaluacion?: boolean | null;
+    fecha_evaluacion?: string | null;
+    usa_medicamentos?: boolean | null;
+    medicamentos_detalle?: string | null;
+    alergias?: boolean | null;
+    alergias_detalle?: string | null;
+    observaciones_medicas?: string | null;
+    maestro_actual_id?: number | null;
+    fecha_creacion: string;
+    fecha_actualizacion: string;
+};
 
 const PaginaAlumnoUnica = async ({
-    params: { id },
+    params,
 }: {
     params: { id: string };
 }) => {
     const { sessionClaims } = auth();
     const role = (sessionClaims?.metadata as { role?: string })?.role;
 
-    const alumno:
-        | null = await prisma.alumno.findUnique({
-            where: { id: Number(id) },
-        });
+    // Find alumno by id with Prisma
+    const alumno = await prisma.alumno.findUnique({
+        where: { id: Number(params.id) },
+    });
 
     if (!alumno) {
-        return notFound();
+        return <div>No se encontró el estudiante</div>;
     }
 
     return (
-        <div className="flex-1 p-4 flex flex-col gap-4 xl:flex-row">
-            {/* LEFT */}
-            <div className="w-full xl:w-2/3">
-                {/* TOP */}
-                <div className="flex flex-col lg:flex-row gap-4">
-                    {/* USER INFO CARD */}
-                    <div className="bg-lamaSky py-6 px-4 rounded-md flex-1 flex gap-4">
-                        <div className="w-1/3">
-                            {/* <Image
-                                src={alumno.img || "/noAvatar.png"}
-                                alt=""
-                                width={144}
-                                height={144}
-                                className="w-36 h-36 rounded-full object-cover"
-                            /> */}
-                        </div>
-                        <div className="w-2/3 flex flex-col justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                <h1 className="text-xl font-semibold">
-                                    {alumno.nombre + " " + alumno.surname}
-                                </h1>
-                                {role === "admin" && (
-                                    <FormContainer table="alumno" type="update" data={alumno} />
-                                )}
-                            </div>
-                            <p className="text-sm text-gray-500">
-                                Lorem ipsum, dolor sit amet consectetur adipisicing elit.
-                            </p>
-                            <div className="flex items-center justify-between gap-2 flex-wrap text-xs font-medium">
-                                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                                    <Image src="/blood.png" alt="" width={14} height={14} />
-                                    <span>{alumno.bloodType}</span>
-                                </div>
-                                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                                    <Image src="/date.png" alt="" width={14} height={14} />
-                                    <span>
-                                        {new Intl.DateTimeFormat("en-GB").format(alumno.birthday)}
-                                    </span>
-                                </div>
-                                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                                    <Image src="/mail.png" alt="" width={14} height={14} />
-                                    <span>{alumno.email || "-"}</span>
-                                </div>
-                                <div className="w-full md:w-1/3 lg:w-full 2xl:w-1/3 flex items-center gap-2">
-                                    <Image src="/phone.png" alt="" width={14} height={14} />
-                                    <span>{alumno.phone || "-"}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {/* SMALL CARDS */}
-                    <div className="flex-1 flex gap-4 justify-between flex-wrap">
-                        {/* CARD */}
-                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-                            <Image
-                                src="/singleAttendance.png"
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                            <Suspense fallback="loading...">
-                                <StudentAttendanceCard id={alumno.id} />
-                            </Suspense>
-                        </div>
-                        {/* CARD */}
-                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-                            <Image
-                                src="/singleBranch.png"
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                            <div className="">
-                                <h1 className="text-xl font-semibold">
-                                    {alumno.class.name.charAt(0)}th
-                                </h1>
-                                <span className="text-sm text-gray-400">Grade</span>
-                            </div>
-                        </div>
-                        {/* CARD */}
-                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-                            <Image
-                                src="/singleLesson.png"
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                            <div className="">
-                                <h1 className="text-xl font-semibold">
-                                    {alumno.class._count.lessons}
-                                </h1>
-                                <span className="text-sm text-gray-400">Lessons</span>
-                            </div>
-                        </div>
-                        {/* CARD */}
-                        <div className="bg-white p-4 rounded-md flex gap-4 w-full md:w-[48%] xl:w-[45%] 2xl:w-[48%]">
-                            <Image
-                                src="/singleClass.png"
-                                alt=""
-                                width={24}
-                                height={24}
-                                className="w-6 h-6"
-                            />
-                            <div className="">
-                                <h1 className="text-xl font-semibold">{alumno.class.name}</h1>
-                                <span className="text-sm text-gray-400">Class</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {/* BOTTOM */}
-                <div className="mt-4 bg-white rounded-md p-4 h-[800px]">
-                    <h1>alumno&apos;s Schedule</h1>
-                    <BigCalendarContainer type="classId" id={alumno.class.id} />
+        <div className="bg-white rounded-md p-6 m-4">
+            <div className="mb-6 flex items-center justify-between">
+                <h1 className="text-2xl font-semibold">
+                    {alumno.nombre} {alumno.apellido}
+                </h1>
+                <div className="flex gap-2">
+                    <Link href="/list/alumnos">
+                        <button className="btn-primary">Volver a la lista</button>
+                    </Link>
+                    {role === "admin" && (
+                        <>
+                            <FormContainer type="update" table="alumno" data={alumno} />
+                            <FormContainer type="delete" table="alumno" id={alumno.id} />
+                        </>
+                    )}
                 </div>
             </div>
-            {/* RIGHT */}
-            <div className="w-full xl:w-1/3 flex flex-col gap-4">
-                <div className="bg-white p-4 rounded-md">
-                    <h1 className="text-xl font-semibold">Shortcuts</h1>
-                    <div className="mt-4 flex gap-4 flex-wrap text-xs text-gray-500">
-                        <Link
-                            className="p-3 rounded-md bg-lamaSkyLight"
-                            href={`/list/lessons?classId=${alumno.class.id}`}
-                        >
-                            alumno&apos;s Lessons
-                        </Link>
-                        <Link
-                            className="p-3 rounded-md bg-lamaPurpleLight"
-                            href={`/list/teachers?classId=${alumno.class.id}`}
-                        >
-                            alumno&apos;s Teachers
-                        </Link>
-                        <Link
-                            className="p-3 rounded-md bg-pink-50"
-                            href={`/list/exams?classId=${alumno.class.id}`}
-                        >
-                            alumno&apos;s Exams
-                        </Link>
-                        <Link
-                            className="p-3 rounded-md bg-lamaSkyLight"
-                            href={`/list/assignments?classId=${alumno.class.id}`}
-                        >
-                            alumno&apos;s Assignments
-                        </Link>
-                        <Link
-                            className="p-3 rounded-md bg-lamaYellowLight"
-                            href={`/list/results?alumnoId=${alumno.id}`}
-                        >
-                            alumno&apos;s Results
-                        </Link>
-                    </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Left column - Basic info */}
+                <div>
+                    <p>
+                        <strong>ID Usuario:</strong> {alumno.idusuario || "-"}
+                    </p>
+                    <p>
+                        <strong>Documento de identidad:</strong>{" "}
+                        {alumno.documento_identidad || "-"}
+                    </p>
+                    <p>
+                        <strong>Fecha de nacimiento:</strong>{" "}
+                        {alumno.fecha_de_nacimiento
+                            ? new Date(alumno.fecha_de_nacimiento).toLocaleDateString()
+                            : "-"}
+                    </p>
+                    <p>
+                        <strong>Género:</strong> {alumno.genero}
+                    </p>
+                    <p>
+                        <strong>Lugar de nacimiento:</strong> {alumno.lugar_de_nacimiento}
+                    </p>
+                    <p>
+                        <strong>Institución de procedencia:</strong>{" "}
+                        {alumno.institucion_procedencia}
+                    </p>
+                    <p>
+                        <strong>Año de ingreso:</strong>{" "}
+                        {alumno.a_o_de_ingreso ?? "-"}
+                    </p>
+                    <p>
+                        <strong>Estado:</strong> {alumno.estado ?? "-"}
+                    </p>
+                    <p>
+                        <strong>Jornada actual:</strong> {alumno.jornada_actual ?? "-"}
+                    </p>
                 </div>
-                <Performance />
-                <Announcements />
+
+                {/* Right column - Medical and evaluation info */}
+                <div>
+                    <p>
+                        <strong>Recibió evaluación:</strong>{" "}
+                        {alumno.recibio_evaluacion ? "Sí" : "No"}
+                    </p>
+                    <p>
+                        <strong>Fecha evaluación:</strong>{" "}
+                        {alumno.fecha_evaluacion
+                            ? new Date(alumno.fecha_evaluacion).toLocaleDateString()
+                            : "-"}
+                    </p>
+                    <p>
+                        <strong>Usa medicamentos:</strong>{" "}
+                        {alumno.usa_medicamentos ? "Sí" : "No"}
+                    </p>
+                    <p>
+                        <strong>Detalle medicamentos:</strong>{" "}
+                        {alumno.medicamentos_detalle || "-"}
+                    </p>
+                    <p>
+                        <strong>¿Tiene alergias?:</strong>{" "}
+                        {alumno.alergias ? "Sí" : "No"}
+                    </p>
+                    <p>
+                        <strong>Detalle alergias:</strong>{" "}
+                        {alumno.alergias_detalle || "-"}
+                    </p>
+                    <p>
+                        <strong>Observaciones médicas:</strong>{" "}
+                        {alumno.observaciones_medicas || "-"}
+                    </p>
+                    <p>
+                        <strong>ID Maestro Actual:</strong>{" "}
+                        {alumno.maestro_actual_id ?? "-"}
+                    </p>
+                    <p>
+                        <strong>Fecha de creación:</strong>{" "}
+                        {new Date(alumno.fecha_creacion).toLocaleString()}
+                    </p>
+                    <p>
+                        <strong>Fecha de actualización:</strong>{" "}
+                        {new Date(alumno.fecha_actualizacion).toLocaleString()}
+                    </p>
+                </div>
             </div>
         </div>
     );

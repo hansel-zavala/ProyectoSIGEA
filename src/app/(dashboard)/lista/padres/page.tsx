@@ -4,7 +4,7 @@ import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { padre, Prisma} from "@prisma/client";
+import { padre, Prisma } from "@prisma/client";
 import Image from "next/image";
 
 import { auth } from "@clerk/nextjs/server";
@@ -26,18 +26,18 @@ const PaginaListaPadre = async ({
             accessor: "info",
         },
         {
-            header: "Alumnos",
-            accessor: "alumnos",
+            header: "Telefono",
+            accessor: "telefono",
             className: "hidden md:table-cell",
         },
         {
-            header: "Telefono",
-            accessor: "telefono",
+            header: "Documento de ID",
+            accessor: "documentoId",
             className: "hidden lg:table-cell",
         },
         {
-            header: "Direccion",
-            accessor: "direccion",
+            header: "Estado",
+            accessor: "estado",
             className: "hidden lg:table-cell",
         },
         ...(role === "admin"
@@ -67,69 +67,24 @@ const PaginaListaPadre = async ({
                     )} */}
                 </div>
             </td>
-            {/* Mostrar hijo */}
-            {/* <td className="hidden md:table-cell">
-                {item.alumnoPadreRelaciones.length > 0 ? (
-                    <div className="flex flex-col gap-1 text-xs">
-                        {item.alumnoPadreRelaciones.map((rel) => (
-                            <span key={rel.alumno.id}>
-                                {rel.alumno.nombre} {rel.alumno.apellido}
-                            </span>
-                        ))}
-                    </div>
-                ) : (
-                    <span className="text-gray-400 italic text-xs">No children</span>
-                )}
-            </td> */}
 
             {/* Mostar telefonos */}
-            {/* <td className="hidden lg:table-cell">
+            <td className="hidden lg:table-cell">
                 <div className="flex flex-col gap-1 text-xs">
-                    {item.telefonoMovil && (
-                        <div>
-                            <span className="font-medium">Mobile:</span> {item.telefonoMovil}
-                        </div>
-                    )}
-                    {item.telefonoTrabajo && (
-                        <div>
-                            <span className="font-medium">Work:</span> {item.telefonoTrabajo}
-                        </div>
-                    )}
-                    {!item.telefonoMovil && !item.telefonoTrabajo && (
-                        <span className="text-gray-400 italic">No phone</span>
-                    )}
+                    <span className="font-medium">Telefono Movil: </span>
+                    <span>{item.telefono_movil}</span>
                 </div>
-            </td> */}
-            {/* Mostrar direccion */}
-            {/* <td className="hidden lg:table-cell">
-                <div className="text-xs">
-                    {item.direccionCasa && (
-                        <div className="mb-2">
-                            <p className="font-medium">Casa:</p>
-                            <p>{item.direccionCasa.direccionCompleta}</p>
-                            {item.direccionCasa.ciudad && item.direccionCasa.departamento && (
-                                <p className="text-gray-500">
-                                    {item.direccionCasa.ciudad}, {item.direccionCasa.departamento}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                    {item.direccionTrabajo && (
-                        <div>
-                            <p className="font-medium">Trabajo:</p>
-                            <p>{item.direccionTrabajo.direccionCompleta}</p>
-                            {item.direccionTrabajo.ciudad && item.direccionTrabajo.departamento && (
-                                <p className="text-gray-500">
-                                    {item.direccionTrabajo.ciudad}, {item.direccionTrabajo.departamento}
-                                </p>
-                            )}
-                        </div>
-                    )}
-                    {!item.direccionCasa && !item.direccionTrabajo && (
-                        <span className="text-gray-400 italic">No address</span>
-                    )}
+            </td>
+            <td className="hidden lg:table-cell">
+                <div className="flex flex-col gap-1 text-xs">
+                    <span>{item.documento_identidad}</span>
                 </div>
-            </td> */}
+            </td>
+            <td className="hidden lg:table-cell">
+                <div className="flex flex-col gap-1 text-xs">
+                    <span>{item.activo === true ? "Activo" : "Inactivo"}</span>
+                </div>
+            </td>
             <td>
                 <div className="flex items-center gap-2">
                     {role === "admin" && (
@@ -191,7 +146,7 @@ const PaginaListaPadre = async ({
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
             {/* TOP */}
             <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">All Parents</h1>
+                <h1 className="hidden md:block text-lg font-semibold">Todos los padres</h1>
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                     <TableSearch />
                     <div className="flex items-center gap-4 self-end">

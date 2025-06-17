@@ -26,8 +26,8 @@ const PaginaListaMaestro = async ({
             accessor: "info",
         },
         {
-            header: "Teacher ID",
-            accessor: "teacherId",
+            header: "Maestro ID",
+            accessor: "maestroId",
             className: "hidden md:table-cell",
         },
         {
@@ -36,18 +36,13 @@ const PaginaListaMaestro = async ({
             className: "hidden md:table-cell",
         },
         {
-            header: "Licencia",
-            accessor: "licencia",
-            className: "hidden md:table-cell",
-        },
-        {
-            header: "Phone",
-            accessor: "phone",
+            header: "Telefono",
+            accessor: "telefono",
             className: "hidden lg:table-cell",
         },
         {
-            header: "Address",
-            accessor: "address",
+            header: "Estado",
+            accessor: "estado",
             className: "hidden lg:table-cell",
         },
         ...(role === "admin"
@@ -82,6 +77,12 @@ const PaginaListaMaestro = async ({
             <td className="hidden md:table-cell">{item.idusuario}</td>
             <td className="hidden md:table-cell">
                 <span className="capitalize">{item.tipo_profesional}</span>
+            </td>
+            <td className="hidden md:table-cell">
+                <span className="capitalize">{item.telefono_movil}</span>
+            </td>
+            <td className="hidden md:table-cell">
+                <span className="capitalize">{item.estado}</span>
             </td>
             {/* <td className="hidden md:table-cell">
                 {item.num || (

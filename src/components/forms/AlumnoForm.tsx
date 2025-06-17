@@ -73,7 +73,7 @@ const AlumnoForm = ({
             <span className="text-xs text-gray-400 font-medium">
                 Información Personal
             </span>
-            <div className="flex justify-between flex-wrap gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <InputField
                     label="Nombre"
                     name="nombre"
@@ -96,16 +96,16 @@ const AlumnoForm = ({
                     error={errors.fecha_de_nacimiento}
                     type="date"
                 />
-                <div className="flex flex-col gap-2 w-full md:w-1/4">
+                <div className="flex flex-col gap-2 w-full md:w">
                     <label className="text-xs text-gray-500">Género</label>
                     <select
                         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
                         {...register("genero")}
                         defaultValue={data?.genero}
                     >
-                        {/* <option value="">Seleccionar...</option> */}
-                        <option value="Masculino">Masculino</option>
-                        <option value="Femenino">Femenino</option>
+                        <option value="">Seleccionar...</option>
+                        <option value="masculino">Masculino</option>
+                        <option value="femenino">Femenino</option>
                     </select>
                 </div>
                 <InputField

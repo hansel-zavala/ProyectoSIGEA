@@ -63,7 +63,7 @@ const MaestroForm = ({
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6">
             <h1 className="text-xl font-bold">
-                {type === "create" ? "Registrar Maestro" : "Actualizar Información"}
+                {type === "create" ? "Registrar Maestro" : "Actualizar Información del Maestro"}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -100,7 +100,7 @@ const MaestroForm = ({
                     }
                     error={errors.fecha_de_nacimiento}
                 />
-                <div className="flex flex-col gap-2 w-full">
+                <div className="flex flex-col gap-2 w">
                     <label className="text-xs text-gray-500">Género</label>
                     <select
                         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"

@@ -60,7 +60,7 @@ const PadreForm = ({
     return (
         <form onSubmit={onSubmit} className="flex flex-col gap-6">
             <h1 className="text-xl font-bold">
-                {type === "create" ? "Registrar Padre/Tutor" : "Actualizar Información"}
+                {type === "create" ? "Registrar Padre/Tutor" : "Actualizar Información del Padre"}
             </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

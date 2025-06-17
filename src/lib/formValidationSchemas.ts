@@ -7,7 +7,7 @@ export const alumnoSchema = z.object({
     nombre: z.string().min(1).max(50),
     apellido: z.string().min(1).max(50),
     fecha_de_nacimiento: z.coerce.date(),
-    genero: z.string().max(10).optional(),
+    genero: z.enum(["masculino", "femenino"]).optional(),
     documento_identidad: z.string().max(20).optional(),
     lugar_de_nacimiento: z.string().min(1).max(150),
     institucion_procedencia: z.string().min(1).max(100),

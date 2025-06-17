@@ -4,7 +4,7 @@ import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Prisma, alumno} from "@prisma/client";
+import { Prisma, alumno } from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -36,8 +36,8 @@ const ListaAlumnoPage = async ({
             className: "hidden md:table-cell",
         },
         {
-            header: "Ano de admision",
-            accessor: "anodeadmision",
+            header: "Año de admision",
+            accessor: "añodeadmision",
             className: "hidden lg:table-cell",
         },
         // {
@@ -76,11 +76,11 @@ const ListaAlumnoPage = async ({
                 {new Date(item.fecha_de_nacimiento).toLocaleDateString()}
             </td>
             <td className="hidden md:table-cell">{item.genero}</td>
-            <td className="hidden md:table-cell">{item.a_o_de_ingreso}</td>
+            <td className="hidden md:table-cell center">{item.a_o_de_ingreso}</td>
             {/* <td className="hidden md:table-cell">{item.direccion?.direccionCompleta}</td> */}
             <td>
                 <div className="flex items-center gap-2">
-                    <Link href={`/list/students/${item.id}`}>
+                    <Link href={`/lista/alumnos/${item.id}`}>
                         <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
                             <Image src="/view.png" alt="" width={16} height={16} />
                         </button>
@@ -89,7 +89,10 @@ const ListaAlumnoPage = async ({
                         // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
                         //   <Image src="/delete.png" alt="" width={16} height={16} />
                         // </button>
-                        <FormContainer table="alumno" type="delete" id={item.id} />
+                        <>
+                            <FormContainer table="alumno" type="update" data={item} />
+                            <FormContainer table="alumno" type="delete" id={item.id} />
+                        </>
                     )}
                 </div>
             </td>
@@ -110,8 +113,8 @@ const ListaAlumnoPage = async ({
                 switch (key) {
                     case "search":
                         query.OR = [
-                            { nombre: { contains: value} },
-                            { apellido: { contains: value} },
+                            { nombre: { contains: value } },
+                            { apellido: { contains: value } },
                         ];
                         break;
                     default:
@@ -136,7 +139,7 @@ const ListaAlumnoPage = async ({
         <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
             {/* TOP */}
             <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">All Students</h1>
+                <h1 className="hidden md:block text-lg font-semibold">Todos los Estudiantes</h1>
                 <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
                     <TableSearch />
                     <div className="flex items-center gap-4 self-end">
