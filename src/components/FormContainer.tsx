@@ -1,4 +1,3 @@
-// Importa la instancia de Prisma para consultas a la base de datos
 import prisma from "@/lib/prisma";
 
 // Importa el componente FormModal para mostrar formularios modales
@@ -65,6 +64,14 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
             // Para padre no se agrega data relacionada (por ahora)
             case "padre":
                 // Se puede agregar data relacionada si es necesario
+                // const alumno = await prisma.alumno.findMany({
+                //     select:{
+                //         id: true,
+                //         nombre: true,
+                //         apellido: true
+                //     }
+                // })
+                // relatedData = { alumno }
                 break;
 
             // Default en caso de tabla no contemplada

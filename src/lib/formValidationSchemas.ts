@@ -28,7 +28,7 @@ export const alumnoSchema = z.object({
     // Institución de procedencia, string obligatorio
     institucionProcedencia: z.string().min(1, { message: "Institución de procedencia es requerida!" }),
     // Año de ingreso, string opcional
-    a_o_de_ingreso: z.string().optional(),
+    a_o_de_ingreso: z.coerce.number().optional(),
     // Carrera, string opcional
     carrera: z.string().optional(),
     // Estado, puede ser uno de los valores del enum, opcional
@@ -63,46 +63,58 @@ export const alumnoSchema = z.object({
 // Define el tipo TypeScript inferido para alumnoSchema
 export type AlumnoSchema = z.infer<typeof alumnoSchema>;
 
-// // Define el esquema para la entidad "teacher" (profesor)
-// export const teacherSchema = z.object({
-//     // Id opcional, string
-//     id: z.string().optional(),
-//     // Username, string con longitud entre 3 y 20 caracteres, obligatorio
-//     username: z
-//         .string()
-//         .min(3, { message: "Username must be at least 3 characters long!" })
-//         .max(20, { message: "Username must be at most 20 characters long!" }),
-//     // Password, string con mínimo 8 caracteres, opcional o puede ser vacío
-//     password: z
-//         .string()
-//         .min(8, { message: "Password must be at least 8 characters long!" })
-//         .optional()
-//         .or(z.literal("")),
-//     // Nombre, string obligatorio con al menos 1 carácter
-//     name: z.string().min(1, { message: "First name is required!" }),
-//     // Apellido, string obligatorio con al menos 1 carácter
-//     surname: z.string().min(1, { message: "Last name is required!" }),
-//     // Email, string con formato email válido, opcional o puede ser vacío
-//     email: z
-//         .string()
-//         .email({ message: "Invalid email address!" })
-//         .optional()
-//         .or(z.literal("")),
-//     // Teléfono, string opcional
-//     phone: z.string().optional(),
-//     // Dirección, string obligatorio
-//     address: z.string(),
-//     // Imagen, string opcional (posiblemente URL)
-//     img: z.string().optional(),
-//     // Tipo de sangre, string obligatorio con al menos 1 carácter
-//     bloodType: z.string().min(1, { message: "Blood Type is required!" }),
-//     // Fecha de nacimiento, se convierte automáticamente a Date y es obligatorio
-//     birthday: z.coerce.date({ message: "Birthday is required!" }),
-//     // Sexo, solo puede ser "MALE" o "FEMALE"
-//     sex: z.enum(["MALE", "FEMALE"], { message: "Sex is required!" }),
-//     // Subjects, arreglo opcional de strings que representan ids de materias
-//     subjects: z.array(z.string()).optional(), // subject ids
-// });
+// Define el esquema para la entidad "maestro" (profesor)
 
-// // Define el tipo TypeScript inferido para teacherSchema
-// export type TeacherSchema = z.infer<typeof teacherSchema>;
+export const padreSchema = z.object({
+    id: z.number().optional(), // AUTO_INCREMENT
+    idusuario: z.string().max(100).optional(), // UNIQUE, can be null initially
+    nombre: z.string().min(1).max(50),
+    apellido: z.string().min(1).max(50),
+    documento_identidad: z.string().max(20).optional().nullable(),
+    tipo_parentesco: z.enum(['madre', 'padre', 'tutor', 'guardian']),
+    fecha_de_nacimiento: z.coerce.date().optional(),
+    genero: z.string().max(10).optional().nullable(),
+    lugar_de_nacimiento: z.string().max(150).optional().nullable(),
+    telefono_movil: z.string().max(20).optional().nullable(),
+    // telefono_trabajo: z.string().max(20).optional().nullable(),
+    email: z.string().email().max(100).optional().nullable(),
+    ocupacion: z.string().max(100).optional().nullable(),
+    lugar_trabajo: z.string().max(150).optional().nullable(),
+    estado_civil: z.string().max(20).optional().nullable(),
+    // nivel_educativo: z.string().max(50).optional().nullable(),
+    // ingresos_mensuales: z.coerce.number().optional().nullable(), // DECIMAL
+    es_responsable_financiero: z.boolean().optional().default(true),
+    es_contacto_emergencia: z.boolean().optional().default(true),
+    direccion_casa_id: z.number().optional().nullable(),
+    direccion_trabajo_id: z.number().optional().nullable(),
+    activo: z.boolean().optional().default(true),
+    fecha_creacion: z.coerce.date().optional(), // Usually managed by DB
+    fecha_actualizacion: z.coerce.date().optional(), // Usually managed by DB
+});
+
+export type PadreSchema = z.infer<typeof padreSchema>;
+
+export const maestroSchema = z.object({
+  id: z.number().int().optional(), // assuming auto-increment primary key, optional on create
+  idusuario: z.string().optional(), // might be unique user id, optional
+  nombre: z.string().min(1, "Nombre is required"),
+  apellido: z.string().min(1, "Apellido is required"),
+  documento_identidad: z.string().optional().nullable(),
+  fecha_de_nacimiento: z.string().optional().nullable(), // Could also be z.date(), but often dates come as strings
+  genero: z.string().optional().nullable(),
+  telefono_movil: z.string().optional().nullable(),
+  telefono_trabajo: z.string().optional().nullable(),
+  email: z.string().email().optional().nullable(),
+  tipo_profesional: z.string().optional().nullable(),
+  numero_licencia: z.string().optional().nullable(),
+  universidad_graduacion: z.string().optional().nullable(),
+  años_experiencia: z.number().int().optional().nullable(),
+  direccion_id: z.number().int().optional().nullable(),
+  estado: z.string().optional().nullable(),
+  fecha_ingreso: z.string().optional().nullable(),
+  fecha_creacion: z.string().optional().nullable(),
+  fecha_actualizacion: z.string().optional().nullable(),
+  imagen: z.string().optional()
+});
+
+export type MaestroSchema = z.infer<typeof maestroSchema>;

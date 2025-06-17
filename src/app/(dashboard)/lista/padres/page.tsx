@@ -140,8 +140,8 @@ const PaginaListaPadre = async ({
                 <div className="flex items-center gap-2">
                     {role === "admin" && (
                         <>
-                            <FormContainer table="parent" type="update" data={item} />
-                            <FormContainer table="parent" type="delete" id={item.id} />
+                            <FormContainer table="padre" type="update" data={item} />
+                            <FormContainer table="padre" type="delete" id={item.id} />
                         </>
                     )}
                 </div>
@@ -207,7 +207,7 @@ const PaginaListaPadre = async ({
                         <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
                             <Image src="/sort.png" alt="" width={14} height={14} />
                         </button>
-                        {role === "admin" && <FormContainer table="parent" type="create" />}
+                        {role === "admin" && <FormContainer table="padre" type="create" />}
                     </div>
                 </div>
             </div>

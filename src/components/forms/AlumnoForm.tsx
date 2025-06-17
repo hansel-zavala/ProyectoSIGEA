@@ -11,10 +11,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 type AlumnoFormData = AlumnoSchema
-// &{
-//     username?: string;
-//     password?: string;
-// };
 
 const AlumnoForm = ({
     type,
@@ -31,12 +27,7 @@ const AlumnoForm = ({
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<AlumnoFormData>({
-        // resolver: zodResolver(alumnoSchema.extend({
-        //     username: type === "create" ? alumnoSchema.shape.nombre : alumnoSchema.shape.nombre.optional(),
-        //     password: type === "create" ? alumnoSchema.shape.nombre : alumnoSchema.shape.nombre.optional(),
-        // })),
-    });
+    } = useForm<AlumnoFormData>({});
 
     const [state, formAction] = useFormState(
         type === "create" ? createAlumno : updateAlumno,
@@ -47,6 +38,7 @@ const AlumnoForm = ({
     );
 
     const onSubmit = handleSubmit((data) => {
+        data.a_o_de_ingreso = data.a_o_de_ingreso ? parseInt(data.a_o_de_ingreso as unknown as string) : undefined;
         formAction(data);
     });
 

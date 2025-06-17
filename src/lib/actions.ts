@@ -10,69 +10,10 @@ import prisma from "./prisma";
 // Importamos cliente de Clerk para manejo de usuarios
 import { clerkClient } from "@clerk/nextjs/server";
 
+import { AlumnoSchema, PadreSchema, MaestroSchema } from "./formValidationSchemas";
+
 // Definimos tipo para manejar estados de éxito o error
 type CurrentState = { success: boolean; error: boolean };
-
-// Definimos esquema de validación para Alumno usando Zod
-export const alumnoSchema = z.object({
-    // ID opcional (para update)
-    id: z.number().optional(),
-    // ID de usuario Clerk opcional
-    idusuario: z.string().optional(),
-    // Nombre obligatorio, mínimo 1 carácter
-    nombre: z.string().min(1, { message: "Nombre es requerido!" }),
-    // Apellido obligatorio, mínimo 1 carácter
-    apellido: z.string().min(1, { message: "Apellido es requerido!" }),
-    // Fecha de nacimiento obligatoria, convertida a Date
-    fechaDeNacimiento: z.coerce.date({ message: "Fecha de nacimiento es requerida!" }),
-    // Género opcional
-    genero: z.string().optional(),
-    // Documento de identidad opcional
-    documentoIdentidad: z.string().optional(),
-    // Lugar de nacimiento obligatorio, mínimo 1 carácter
-    lugarDeNacimiento: z.string().min(1, { message: "Lugar de nacimiento es requerido!" }),
-    // Teléfono móvil opcional
-    // telefonoMovil: z.string().optional(),
-    // Email opcional, debe ser válido o vacío
-    // email: z.string().email({ message: "Email inválido!" }).optional().or(z.literal("")),
-    // Estado civil opcional
-    // estadoCivil: z.string().optional(),
-    // Institución de procedencia obligatoria, mínimo 1 carácter
-    institucionProcedencia: z.string().min(1, { message: "Institución de procedencia es requerida!" }),
-    // Año de ingreso opcional
-    a_o_de_ingreso: z.number().optional(),
-    // Carrera opcional
-    // carrera: z.string().optional(),
-    // Estado del alumno opcional, debe ser uno de los valores permitidos
-    estado: z.enum(["activo", "inactivo", "graduado", "retirado"]).optional(),
-    // Jornada actual opcional, uno de los valores permitidos
-    jornadaActual: z.enum(["matutina", "vespertina"]).optional(),
-    // Nombre contacto emergencia opcional
-    // nombreContactoEmergencia: z.string().optional(),
-    // Teléfono emergencia opcional
-    // telefonoEmergencia: z.string().optional(),
-    // Booleano si recibió evaluación, opcional
-    recibioEvaluacion: z.boolean().optional(),
-    // Fecha de evaluación opcional, convertida a Date
-    fechaEvaluacion: z.coerce.date().optional(),
-    // Booleano si usa medicamentos, opcional
-    usaMedicamentos: z.boolean().optional(),
-    // Detalles de medicamentos opcional
-    medicamentosDetalle: z.string().optional(),
-    // Booleano si tiene alergias, opcional
-    alergias: z.boolean().optional(),
-    // Detalles de alergias opcional
-    alergiasDetalle: z.string().optional(),
-    // Observaciones médicas opcional
-    observacionesMedicas: z.string().optional(),
-    // ID de dirección opcional
-    direccionId: z.number().optional(),
-    // ID del maestro actual opcional
-    // maestroActualId: z.number().optional(),
-});
-
-// Definimos un tipo TypeScript basado en el esquema de Zod
-export type AlumnoSchema = z.infer<typeof alumnoSchema>;
 
 // Función para crear un alumno nuevo, recibe estado y datos del alumno más username y password
 export const createAlumno = async (
@@ -101,7 +42,7 @@ export const createAlumno = async (
                 // Resto de campos que vienen del formulario / data
                 nombre: data.nombre,
                 apellido: data.apellido,
-                fechaDeNacimiento: data.fechaDeNacimiento,
+                fechaDeNacimiento: new Date(data.fechaDeNacimiento),
                 genero: data.genero,
                 documentoIdentidad: data.documentoIdentidad,
                 lugarDeNacimiento: data.lugarDeNacimiento,
@@ -255,6 +196,267 @@ export const deleteAlumno = async (
         return { success: true, error: false };
     } catch (err) {
         // Mostramos error si falla algo
+        console.log(err);
+        return { success: false, error: true };
+    }
+};
+
+export const createPadre = async (
+    currentState: CurrentState,
+    data: PadreSchema
+) => {
+    try {
+        // Guardamos el ID de dirección si existe (en este código no se crea dirección nueva)
+        // let direccionId = data.direccion_casa_id || data.direccion_trabajo_id;
+        await prisma.padre.create({
+            data: {
+                nombre: data.nombre,
+                apellido: data.apellido,
+                documentoIdentidad: data.documento_identidad,
+                tipoParentesco: data.tipo_parentesco,
+                fechaDeNacimiento: data.fecha_de_nacimiento,
+                genero: data.genero,
+                lugarDeNacimiento: data.lugar_de_nacimiento,
+                telefonoMovil: data.telefono_movil,
+                // telefonoTrabajo: data.telefono_trabajo,
+                email: data.email,
+                ocupacion: data.ocupacion,
+                lugarTrabajo: data.lugar_trabajo,
+                estadoCivil: data.estado_civil,
+                // nivelEducativo: data.nivel_educativo,
+                // ingresosMensuales: data.ingresos_mensuales,
+                esResponsableFinanciero: data.es_responsable_financiero,
+                esContactoEmergencia: data.es_contacto_emergencia,
+                direccionCasaId: data.direccion_casa_id,
+                direccionTrabajoId: data.direccion_trabajo_id,
+                activo: data.activo
+            },
+        });
+
+        // Indicamos a Next.js que vuelva a generar la página con la lista actualizada
+        revalidatePath("/lista/padres");
+        // Retornamos que fue exitoso
+        return { success: true, error: false };
+    } catch (err) {
+        // Si algo falla, lo mostramos en consola
+        console.log(err);
+        // Indicamos error
+        return { success: false, error: true };
+    }
+};
+
+// Función para actualizar un alumno existente, recibe estado y datos del alumno (id requerido)
+export const updatePadre = async (
+    currentState: CurrentState,
+    data: PadreSchema
+    // & { username?: string; password?: string }
+) => {
+    // Si no envían ID, no podemos actualizar
+    if (!data.id) {
+        return { success: false, error: true };
+    }
+
+    try {
+        // Buscamos el alumno existente en la base de datos
+        const existingPadre = await prisma.padre.findUnique({
+            where: { id: data.id }
+        });
+
+        // Si no existe alumno con ese id, retornamos error
+        if (!existingPadre) {
+            return { success: false, error: true };
+        }
+
+        // Si existe usuario en Clerk y mandan username o password, actualizamos usuario en Clerk
+        // if (existingAlumno.idusuario && (data.username || data.password)) {
+        //     await clerkClient.users.updateUser(existingAlumno.idusuario, {
+        //         ...(data.username && { username: data.username }), // Solo si mandan username
+        //         ...(data.password && data.password !== "" && { password: data.password }), // Solo si mandan password no vacío
+        //         firstName: data.nombre,
+        //         lastName: data.apellido,
+        //     });
+        // }
+
+        // Actualizamos datos del alumno en Prisma DB
+        await prisma.padre.update({
+            where: {
+                id: data.id,
+            },
+            data: {
+                nombre: data.nombre,
+                apellido: data.apellido,
+                documentoIdentidad: data.documento_identidad,
+                tipoParentesco: data.tipo_parentesco,
+                fechaDeNacimiento: data.fecha_de_nacimiento,
+                genero: data.genero,
+                lugarDeNacimiento: data.lugar_de_nacimiento,
+                telefonoMovil: data.telefono_movil,
+                // telefonoTrabajo: data.telefono_trabajo,
+                email: data.email,
+                ocupacion: data.ocupacion,
+                lugarTrabajo: data.lugar_trabajo,
+                estadoCivil: data.estado_civil,
+                // nivelEducativo: data.nivel_educativo,
+                // ingresosMensuales: data.ingresos_mensuales,
+                esResponsableFinanciero: data.es_responsable_financiero,
+                esContactoEmergencia: data.es_contacto_emergencia,
+                direccionCasaId: data.direccion_casa_id,
+                direccionTrabajoId: data.direccion_trabajo_id,
+                activo: data.activo,
+            },
+        });
+
+        // Forzamos que la página con la lista se actualice para reflejar cambios
+        revalidatePath("/lista/padres");
+        // Retornamos éxito
+        return { success: true, error: false };
+    } catch (err) {
+        // Mostramos error si algo falla
+        console.log(err);
+        return { success: false, error: true };
+    }
+};
+
+// Función para eliminar un alumno, recibe estado y un FormData con el id del alumno a borrar
+export const deletePadre = async (
+    currentState: CurrentState,
+    data: FormData
+) => {
+    // Sacamos el id de alumno del FormData
+    const id = data.get("id") as string;
+    try {
+        // Buscamos alumno para obtener el idusuario
+        const padre = await prisma.padre.findUnique({
+            where: { id: parseInt(id) }
+        });
+
+        // Si no existe alumno con ese id, retornamos error
+        if (!padre) {
+            return { success: false, error: true };
+        }
+
+        // Si tiene usuario asociado en Clerk, lo borramos también
+        if (padre.idusuario) {
+            await clerkClient.users.deleteUser(padre.idusuario);
+        }
+
+        // Borramos el alumno de la base de datos
+        await prisma.padre.delete({
+            where: {
+                id: parseInt(id),
+            },
+        });
+
+        // Forzamos que la página con la lista se actualice
+        revalidatePath("/lista/padres");
+        // Retornamos éxito
+        return { success: true, error: false };
+    } catch (err) {
+        // Mostramos error si falla algo
+        console.log(err);
+        return { success: false, error: true };
+    }
+};
+
+export const createMaestro = async (
+    currentState: CurrentState,
+    data: MaestroSchema
+) => {
+    try {
+        await prisma.maestro.create({
+            data: {
+                nombre: data.nombre,
+                apellido: data.apellido,
+                documentoIdentidad: data.documento_identidad || "",
+                fechaDeNacimiento: data.fecha_de_nacimiento,
+                genero: data.genero,
+                telefonoMovil: data.telefono_movil || "",
+                email: data.email || "",
+                tipoProfesional: "ambos",
+                numeroLicencia: data.numero_licencia || "",
+                // direccionId: data.direccion_id,
+                estado: "activo",
+                fechaIngreso: data.fecha_ingreso || "",
+                // imagen: data.imagen
+            },
+        });
+
+        revalidatePath("/lista/maestros");
+        return { success: true, error: false };
+    } catch (err) {
+        console.log(err);
+        return { success: false, error: true };
+    }
+};
+
+export const updateMaestro = async (
+    currentState: CurrentState,
+    data: MaestroSchema
+) => {
+    if (!data.id) {
+        return { success: false, error: true };
+    }
+    try {
+        const existingMaestro = await prisma.maestro.findUnique({
+            where: { id: data.id },
+        });
+
+        if (!existingMaestro) {
+            return { success: false, error: true };
+        }
+
+        await prisma.maestro.update({
+            where: { id: data.id },
+            data: {
+                nombre: data.nombre,
+                apellido: data.apellido,
+                documentoIdentidad: data.documento_identidad || "",
+                fechaDeNacimiento: data.fecha_de_nacimiento,
+                genero: data.genero,
+                telefonoMovil: data.telefono_movil || "",
+                email: data.email || "",
+                tipoProfesional: "ambos",
+                numeroLicencia: data.numero_licencia || "",
+                // direccionId: data.direccion_id,
+                estado: "activo",
+                fechaIngreso: data.fecha_ingreso || "",
+                // imagen: data.imagen
+            },
+        });
+
+        revalidatePath("/lista/maestros");
+        return { success: true, error: false };
+    } catch (err) {
+        console.log(err);
+        return { success: false, error: true };
+    }
+};
+
+export const deleteMaestro = async (
+    currentState: CurrentState,
+    data: FormData
+) => {
+    const id = data.get("id") as string;
+    try {
+        const maestro = await prisma.maestro.findUnique({
+            where: { id: parseInt(id) },
+        });
+
+        if (!maestro) {
+            return { success: false, error: true };
+        }
+
+        if (maestro.idusuario) {
+            await clerkClient.users.deleteUser(maestro.idusuario);
+        }
+
+        await prisma.maestro.delete({
+            where: { id: parseInt(id) },
+        });
+
+        revalidatePath("/lista/maestros");
+        return { success: true, error: false };
+    } catch (err) {
         console.log(err);
         return { success: false, error: true };
     }

@@ -3,6 +3,7 @@
 // Importa la función para eliminar un alumno desde las acciones personalizadas
 import {
     deleteAlumno, // Agrega esta importación
+    deletePadre, // Agrega esta importación
 } from "@/lib/actions";
 // Importa el método para carga dinámica de componentes (lazy loading)
 import dynamic from "next/dynamic";
@@ -22,10 +23,17 @@ import { FormContainerProps } from "./FormContainer";
 // Mapea los tipos de tabla con su acción de eliminación correspondiente
 const deleteActionMap = {
     alumno: deleteAlumno,
+    maestro: deleteAlumno,
+    padre: deletePadre,
+    evento: deleteAlumno,
 };
 
 // Carga dinámica (lazy loading) del formulario del alumno
 const AlumnoForm = dynamic(() => import("./forms/AlumnoForm"), {
+    // Mientras carga, muestra este mensaje
+    loading: () => <h1>Loading...</h1>,
+});
+const PadreForm = dynamic(() => import("./forms/PadreForm"), {
     // Mientras carga, muestra este mensaje
     loading: () => <h1>Loading...</h1>,
 });
@@ -39,7 +47,6 @@ const forms: {
         relatedData?: any
     ) => JSX.Element;
 } = {
-    // Define el formulario para "alumno" (alumno)
     alumno: (setOpen, type, data, relatedData) => (
         <AlumnoForm
             type={type}
@@ -48,7 +55,16 @@ const forms: {
             relatedData={relatedData}
         />
     ),
+    padre: (setOpen, type, data, relatedData) => (
+        <PadreForm
+            type={type}
+            data={data}
+            setOpen={setOpen}
+            // relatedData={relatedData}
+        />
+    ),
 };
+
 
 // Componente principal del modal de formulario
 const FormModal = ({
