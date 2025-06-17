@@ -2,8 +2,9 @@
 "use client";
 // Importa la función para eliminar un alumno desde las acciones personalizadas
 import {
-    deleteAlumno, // Agrega esta importación
-    deletePadre, // Agrega esta importación
+    deleteAlumno,
+    deletePadre,
+    deleteMaestro, // Add this import
 } from "@/lib/actions";
 // Importa el método para carga dinámica de componentes (lazy loading)
 import dynamic from "next/dynamic";
@@ -23,7 +24,7 @@ import { FormContainerProps } from "./FormContainer";
 // Mapea los tipos de tabla con su acción de eliminación correspondiente
 const deleteActionMap = {
     alumno: deleteAlumno,
-    maestro: deleteAlumno,
+    maestro: deleteMaestro, // Fixed: use deleteMaestro instead of deleteAlumno
     padre: deletePadre,
     evento: deleteAlumno,
 };
@@ -34,6 +35,10 @@ const AlumnoForm = dynamic(() => import("./forms/AlumnoForm"), {
     loading: () => <h1>Loading...</h1>,
 });
 const PadreForm = dynamic(() => import("./forms/PadreForm"), {
+    // Mientras carga, muestra este mensaje
+    loading: () => <h1>Loading...</h1>,
+});
+const MaestroForm = dynamic(() => import("./forms/MaestroForm"), { // Add MaestroForm import
     // Mientras carga, muestra este mensaje
     loading: () => <h1>Loading...</h1>,
 });
@@ -57,6 +62,14 @@ const forms: {
     ),
     padre: (setOpen, type, data, relatedData) => (
         <PadreForm
+            type={type}
+            data={data}
+            setOpen={setOpen}
+            // relatedData={relatedData}
+        />
+    ),
+    maestro: (setOpen, type, data, relatedData) => ( // Add maestro form configuration
+        <MaestroForm
             type={type}
             data={data}
             setOpen={setOpen}

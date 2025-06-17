@@ -7,448 +7,93 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Direccion {
-  id                     Int           @id @default(autoincrement())
-  direccionCompleta      String        @map("direccion_completa") @db.VarChar(250)
-  ciudad                 String?       @db.VarChar(100)
-  departamento           String?       @db.VarChar(100)
-  codigoPostal           String?       @map("codigo_postal") @db.VarChar(10)
-  pais                   String?       @default("Honduras") @db.VarChar(50)
-  tipoDireccion          TipoDireccion @default(casa) @map("tipo_direccion")
-  esPrincipal            Boolean?      @default(true) @map("es_principal")
-  fechaCreacion          DateTime      @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion     DateTime      @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  alumnos                Alumno[]
-  maestros               Maestro[]
-  padresDireccionCasa    Padre[]       @relation("DireccionCasa")
-  padresDireccionTrabajo Padre[]       @relation("DireccionTrabajo")
-
-  @@map("direccion")
-}
-
-model TipoAtencion {
-  id                   Int                  @id @default(autoincrement())
-  tipoAtencion         String               @map("tipo_atencion") @db.VarChar(50)
-  alumnoTipoAtenciones AlumnoTipoAtencion[]
-
-  @@map("tipoatencion")
-}
-
-model Maestro {
-  id                        Int             @id @default(autoincrement())
-  idusuario                 String?         @unique(map: "idusuario") @db.VarChar(100)
-  nombre                    String          @db.VarChar(50)
-  apellido                  String          @db.VarChar(50)
-  documentoIdentidad        String          @unique(map: "documento_identidad") @map("documento_identidad") @db.VarChar(20)
-  fechaDeNacimiento         DateTime?       @map("fecha_de_nacimiento") @db.Date
-  genero                    String?         @db.VarChar(10)
-  telefonoMovil             String          @map("telefono_movil") @db.VarChar(20)
-  telefonoTrabajo           String?         @map("telefono_trabajo") @db.VarChar(20)
-  email                     String          @unique(map: "email") @db.VarChar(100)
-  tipoProfesional           TipoProfesional @map("tipo_profesional")
-  numeroLicencia            String?         @map("numero_licencia") @db.VarChar(50)
-  universidadGraduacion     String?         @map("universidad_graduacion") @db.VarChar(150)
-  anos_experiencia          Int?            @map("años_experiencia")
-  direccionId               Int?            @map("direccion_id")
-  estado                    EstadoMaestro?  @default(activo)
-  fechaIngreso              DateTime?       @map("fecha_ingreso") @db.Date
-  fechaCreacion             DateTime        @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion        DateTime        @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  imagen                    String?         @db.VarChar(100)
-  alumnosActuales           Alumno[]        @relation("MaestroActual")
-  alumnoMaestroAsignaciones AlumnoMaestro[]
-  horarioSesiones           HorarioSesion[]
-  direccion                 Direccion?      @relation(fields: [direccionId], references: [id], map: "maestros_ibfk_1")
-  sesiones                  Sesion[]
-
-  @@index([direccionId], map: "fk_maestros_direccion")
-  @@map("maestros")
-}
-
-model Padre {
-  id                      Int            @id @default(autoincrement())
-  idusuario               String?        @unique(map: "idusuario") @db.VarChar(100)
-  nombre                  String         @db.VarChar(50)
-  apellido                String         @db.VarChar(50)
-  documentoIdentidad      String?        @map("documento_identidad") @db.VarChar(20)
-  tipoParentesco          TipoParentesco @map("tipo_parentesco")
-  fechaDeNacimiento       DateTime?      @map("fecha_de_nacimiento") @db.Date
-  genero                  String?        @db.VarChar(10)
-  lugarDeNacimiento       String?        @map("lugar_de_nacimiento") @db.VarChar(150)
-  telefonoMovil           String?        @map("telefono_movil") @db.VarChar(20)
-  telefonoTrabajo         String?        @map("telefono_trabajo") @db.VarChar(20)
-  email                   String?        @db.VarChar(100)
-  ocupacion               String?        @db.VarChar(100)
-  lugarTrabajo            String?        @map("lugar_trabajo") @db.VarChar(150)
-  estadoCivil             String?        @map("estado_civil") @db.VarChar(20)
-  nivelEducativo          String?        @map("nivel_educativo") @db.VarChar(50)
-  ingresosMensuales       Decimal?       @map("ingresos_mensuales") @db.Decimal(10, 2)
-  esResponsableFinanciero Boolean?       @default(true) @map("es_responsable_financiero")
-  esContactoEmergencia    Boolean?       @default(true) @map("es_contacto_emergencia")
-  direccionCasaId         Int?           @map("direccion_casa_id")
-  direccionTrabajoId      Int?           @map("direccion_trabajo_id")
-  activo                  Boolean?       @default(true)
-  fechaCreacion           DateTime       @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion      DateTime       @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  alumnoPadreRelaciones   AlumnoPadre[]
-  direccionCasa           Direccion?     @relation("DireccionCasa", fields: [direccionCasaId], references: [id], map: "padre_ibfk_1")
-  direccionTrabajo        Direccion?     @relation("DireccionTrabajo", fields: [direccionTrabajoId], references: [id], map: "padre_ibfk_2")
-  sesionesPresente        Sesion[]
-
-  @@index([direccionCasaId], map: "fk_padre_direccion_casa")
-  @@index([direccionTrabajoId], map: "fk_padre_direccion_trabajo")
-  @@map("padre")
-}
-
-model Alumno {
-  id                        Int                      @id @default(autoincrement())
-  idusuario                 String?                  @unique(map: "idusuario") @db.VarChar(100)
-  nombre                    String                   @db.VarChar(50)
-  apellido                  String                   @db.VarChar(50)
-  fechaDeNacimiento         DateTime                 @map("fecha_de_nacimiento") @db.Date
-  genero                    String?                  @db.VarChar(10)
-  documentoIdentidad        String?                  @map("documento_identidad") @db.VarChar(20)
-  lugarDeNacimiento         String                   @map("lugar_de_nacimiento") @db.VarChar(150)
-  email                     String?                  @db.VarChar(100)
-  institucionProcedencia    String?                  @map("institucion_procedencia") @db.VarChar(100)
-  a_o_de_ingreso            Int?                     @map("año_de_ingreso") @db.Year
-  estado                    EstadoAlumno?            @default(activo)
-  jornadaActual             Jornada?                 @default(matutina) @map("jornada_actual")
-  recibioEvaluacion         Boolean?                 @default(false) @map("recibio_evaluacion")
-  fechaEvaluacion           DateTime?                @map("fecha_evaluacion") @db.Date
-  usaMedicamentos           Boolean?                 @default(false) @map("usa_medicamentos")
-  medicamentosDetalle       String?                  @map("medicamentos_detalle") @db.Text
-  alergias                  Boolean?                 @default(false)
-  alergiasDetalle           String?                  @map("alergias_detalle") @db.Text
-  observacionesMedicas      String?                  @map("observaciones_medicas") @db.Text
-  direccionId               Int?                     @map("direccion_id")
-  maestroActualId           Int?                     @map("maestro_actual_id")
-  fechaCreacion             DateTime                 @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion        DateTime                 @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  direccion                 Direccion?               @relation(fields: [direccionId], references: [id], map: "alumno_ibfk_1")
-  maestroActual             Maestro?                 @relation("MaestroActual", fields: [maestroActualId], references: [id], map: "alumno_ibfk_2")
-  jornadaHistorial          AlumnoJornadaHistorial[]
-  alumnoMaestroAsignaciones AlumnoMaestro[]
-  alumnoPadreRelaciones     AlumnoPadre[]
-  alumnoTipoAtenciones      AlumnoTipoAtencion[]
-  horarioSesiones           HorarioSesion[]
-  sesiones                  Sesion[]
-
-  @@index([direccionId], map: "fk_alumno_direccion")
-  @@index([maestroActualId], map: "fk_alumno_maestro_actual")
-  @@map("alumno")
-}
-
-model AlumnoPadre {
-  id                     Int       @id @default(autoincrement())
-  alumnoId               Int       @map("alumno_id")
-  padreId                Int       @map("padre_id")
-  esResponsablePrincipal Boolean?  @default(false) @map("es_responsable_principal")
-  esContactoEmergencia   Boolean?  @default(true) @map("es_contacto_emergencia")
-  observaciones          String?   @db.Text
-  fechaAsignacion        DateTime? @default(dbgenerated("(curdate())")) @map("fecha_asignacion") @db.Date
-  fechaCreacion          DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  alumno                 Alumno    @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "alumno_padre_ibfk_1")
-  padre                  Padre     @relation(fields: [padreId], references: [id], onDelete: Cascade, map: "alumno_padre_ibfk_2")
-
-  @@unique([alumnoId, padreId], map: "unique_alumno_padre")
-  @@index([padreId], map: "fk_alumno_padre_padre")
-  @@map("alumno_padre")
-}
-
-model AlumnoTipoAtencion {
-  id                 Int             @id @default(autoincrement())
-  alumnoId           Int             @map("alumno_id")
-  tipoAtencionId     Int             @map("tipo_atencion_id")
-  fechaInicio        DateTime        @map("fecha_inicio") @db.Date
-  fechaFin           DateTime?       @map("fecha_fin") @db.Date
-  estado             EstadoAtencion? @default(activo)
-  observaciones      String?         @db.Text
-  asignadoPor        String?         @map("asignado_por") @db.VarChar(100)
-  motivoFin          String?         @map("motivo_fin") @db.VarChar(200)
-  fechaCreacion      DateTime        @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion DateTime        @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  alumno             Alumno          @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "alumno_tipoatencion_ibfk_1")
-  tipoAtencion       TipoAtencion    @relation(fields: [tipoAtencionId], references: [id], onDelete: Cascade, map: "alumno_tipoatencion_ibfk_2")
-
-  @@index([alumnoId], map: "fk_alumno_tipoatencion_alumno")
-  @@index([tipoAtencionId], map: "fk_alumno_tipoatencion_tipo")
-  @@map("alumno_tipoatencion")
-}
-
-model AlumnoMaestro {
-  id                   Int                 @id @default(autoincrement())
-  alumnoId             Int                 @map("alumno_id")
-  maestroId            Int                 @map("maestro_id")
-  tipoAtencion         TipoAtencionMaestro @map("tipo_atencion")
-  fechaAsignacion      DateTime            @map("fecha_asignacion") @db.Date
-  fechaFin             DateTime?           @map("fecha_fin") @db.Date
-  estado               EstadoAsignacion?   @default(activo)
-  motivoCambio         String?             @map("motivo_cambio") @db.VarChar(200)
-  objetivosTratamiento String?             @map("objetivos_tratamiento") @db.Text
-  observaciones        String?             @db.Text
-  fechaCreacion        DateTime            @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion   DateTime            @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  alumno               Alumno              @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "alumno_maestro_ibfk_1")
-  maestro              Maestro             @relation(fields: [maestroId], references: [id], onDelete: Cascade, map: "alumno_maestro_ibfk_2")
-
-  @@index([alumnoId], map: "fk_alumno_maestro_alumno")
-  @@index([maestroId], map: "fk_alumno_maestro_maestro")
-  @@map("alumno_maestro")
-}
-
-model AlumnoJornadaHistorial {
-  id            Int       @id @default(autoincrement())
-  alumnoId      Int       @map("alumno_id")
-  jornada       Jornada
-  fechaInicio   DateTime  @map("fecha_inicio") @db.Date
-  fechaFin      DateTime? @map("fecha_fin") @db.Date
-  motivoCambio  String?   @map("motivo_cambio") @db.VarChar(200)
-  autorizadoPor String?   @map("autorizado_por") @db.VarChar(100)
-  activo        Boolean?  @default(true)
-  fechaCreacion DateTime  @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  alumno        Alumno    @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "alumno_jornada_historial_ibfk_1")
-
-  @@index([alumnoId], map: "fk_alumno_jornada_alumno")
-  @@map("alumno_jornada_historial")
-}
-
-model HorarioSesion {
-  id                 Int        @id @default(autoincrement())
-  alumnoId           Int        @map("alumno_id")
-  maestroId          Int        @map("maestro_id")
-  tipoSesion         TipoSesion @map("tipo_sesion")
-  diaSemana          DiaSemana  @map("dia_semana")
-  fecha_hora_inicio  DateTime   @db.DateTime(0)
-  fecha_hora_fin     DateTime   @db.DateTime(0)
-  activo             Boolean?   @default(true)
-  observaciones      String?    @db.Text
-  fechaCreacion      DateTime   @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion DateTime   @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  alumno             Alumno     @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "horario_sesiones_ibfk_1")
-  maestro            Maestro    @relation(fields: [maestroId], references: [id], onDelete: Cascade, map: "horario_sesiones_ibfk_2")
-  sesiones           Sesion[]
-
-  @@index([alumnoId], map: "fk_horario_sesiones_alumno")
-  @@index([maestroId], map: "fk_horario_sesiones_maestro")
-  @@map("horario_sesiones")
-}
-
-model Sesion {
-  id                               Int                 @id @default(autoincrement())
-  horarioSesionId                  Int?                @map("horario_sesion_id")
-  alumnoId                         Int                 @map("alumno_id")
-  maestroId                        Int                 @map("maestro_id")
-  tipoSesion                       TipoSesion          @map("tipo_sesion")
-  fechaSesion                      DateTime            @map("fecha_sesion") @db.Date
-  horaInicio                       DateTime            @map("hora_inicio") @db.Time(0)
-  horaFin                          DateTime?           @map("hora_fin") @db.Time(0)
-  estado                           EstadoSesion?       @default(programada)
-  objetivos                        String?             @db.Text
-  actividadesRealizadas            String?             @map("actividades_realizadas") @db.Text
-  observaciones                    String?             @db.Text
-  actividades_o_trabajos_en_sesion String?             @db.Text
-  proximaSesionObservaciones       String?             @map("proxima_sesion_observaciones") @db.Text
-  asistenciaPadre                  Boolean?            @default(false) @map("asistencia_padre")
-  padrePresenteId                  Int?                @map("padre_presente_id")
-  calificacionSesion               CalificacionSesion? @map("calificacion_sesion")
-  motivoCancelacion                String?             @map("motivo_cancelacion") @db.VarChar(200)
-  fechaReprogramacion              DateTime?           @map("fecha_reprogramacion") @db.DateTime(0)
-  fechaCreacion                    DateTime            @default(now()) @map("fecha_creacion") @db.Timestamp(0)
-  fechaActualizacion               DateTime            @default(now()) @updatedAt @map("fecha_actualizacion") @db.Timestamp(0)
-  horarioSesion                    HorarioSesion?      @relation(fields: [horarioSesionId], references: [id], map: "sesiones_ibfk_1")
-  alumno                           Alumno              @relation(fields: [alumnoId], references: [id], onDelete: Cascade, map: "sesiones_ibfk_2")
-  maestro                          Maestro             @relation(fields: [maestroId], references: [id], onDelete: Cascade, map: "sesiones_ibfk_3")
-  padrePresente                    Padre?              @relation(fields: [padrePresenteId], references: [id], map: "sesiones_ibfk_4")
-  trabajos_sesion                  trabajos_sesion[]
-
-  @@index([alumnoId], map: "fk_sesiones_alumno")
-  @@index([horarioSesionId], map: "fk_sesiones_horario")
-  @@index([maestroId], map: "fk_sesiones_maestro")
-  @@index([padrePresenteId], map: "fk_sesiones_padre_presente")
-  @@map("sesiones")
-}
-
-model trabajos_sesion {
-  id                  Int                          @id @default(autoincrement())
-  sesion_id           Int
-  titulo              String                       @db.VarChar(200)
-  descripcion         String                       @db.Text
-  tipo_trabajo        trabajos_sesion_tipo_trabajo
-  recursos_utilizados String?                      @db.Text
-  observaciones       String?                      @db.Text
-  duracion_minutos    Int?
-  fue_completado      Boolean?                     @default(true)
-  requiere_repeticion Boolean?                     @default(false)
-  fecha_creacion      DateTime                     @default(now()) @db.Timestamp(0)
-  fecha_actualizacion DateTime                     @default(now()) @db.Timestamp(0)
-  sesiones            Sesion                       @relation(fields: [sesion_id], references: [id], onDelete: Cascade, onUpdate: Restrict, map: "trabajos_sesion_ibfk_1")
-
-  @@index([sesion_id], map: "fk_trabajos_sesion_sesion")
-}
-
 model admin {
-  id                                                Int               @id @default(autoincrement())
-  idusuario                                         String            @unique(map: "idusuario") @db.VarChar(100)
-  nombre                                            String            @db.VarChar(50)
-  apellido                                          String            @db.VarChar(50)
-  email                                             String            @unique(map: "email") @db.VarChar(100)
-  telefono                                          String?           @db.VarChar(20)
-  documento_identidad                               String?           @unique(map: "documento_identidad") @db.VarChar(20)
-  tipo_admin                                        admin_tipo_admin? @default(admin_general)
-  estado                                            admin_estado?     @default(activo)
-  fecha_creacion                                    DateTime          @default(now()) @db.Timestamp(0)
-  fecha_actualizacion                               DateTime          @default(now()) @db.Timestamp(0)
-  anuncios_anuncios_actualizado_por_admin_idToadmin anuncios[]        @relation("anuncios_actualizado_por_admin_idToadmin")
-  anuncios_anuncios_creado_por_admin_idToadmin      anuncios[]        @relation("anuncios_creado_por_admin_idToadmin")
-  eventos_eventos_actualizado_por_admin_idToadmin   eventos[]         @relation("eventos_actualizado_por_admin_idToadmin")
-  eventos_eventos_creado_por_admin_idToadmin        eventos[]         @relation("eventos_creado_por_admin_idToadmin")
+  id                  Int           @id @default(autoincrement())
+  idusuario           String        @unique(map: "idusuario") @db.VarChar(100)
+  estado              admin_estado? @default(activo)
+  fecha_creacion      DateTime      @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime      @default(now()) @db.Timestamp(0)
+}
 
-  @@index([email], map: "idx_email")
-  @@index([estado], map: "idx_estado")
+model alumno {
+  id                      Int                    @id @default(autoincrement())
+  idusuario               String?                @unique(map: "idusuario") @db.VarChar(100)
+  nombre                  String                 @db.VarChar(50)
+  apellido                String                 @db.VarChar(50)
+  fecha_de_nacimiento     DateTime               @db.Date
+  genero                  String?                @db.VarChar(10)
+  documento_identidad     String?                @db.VarChar(20)
+  lugar_de_nacimiento     String                 @db.VarChar(150)
+  institucion_procedencia String                 @db.VarChar(100)
+  a_o_de_ingreso          Int?                   @map("año_de_ingreso") @db.Year
+  estado                  alumno_estado?         @default(activo)
+  jornada_actual          alumno_jornada_actual? @default(matutina)
+  recibio_evaluacion      Boolean?               @default(false)
+  fecha_evaluacion        DateTime?              @db.Date
+  usa_medicamentos        Boolean?               @default(false)
+  medicamentos_detalle    String?                @db.Text
+  alergias                Boolean?               @default(false)
+  alergias_detalle        String?                @db.Text
+  observaciones_medicas   String?                @db.Text
+  maestro_actual_id       Int?
+  fecha_creacion          DateTime               @default(now()) @db.Timestamp(0)
+  fecha_actualizacion     DateTime               @default(now()) @db.Timestamp(0)
 }
 
 model eventos {
-  id                                            Int                 @id @default(autoincrement())
-  titulo                                        String              @db.VarChar(200)
-  descripcion                                   String?             @db.Text
-  tipo_evento                                   eventos_tipo_evento
-  fecha_inicio                                  DateTime            @db.DateTime(0)
-  fecha_fin                                     DateTime            @db.DateTime(0)
-  lugar                                         String?             @db.VarChar(200)
-  estado                                        eventos_estado?     @default(planificado)
-  es_publico                                    Boolean?            @default(true)
-  observaciones                                 String?             @db.Text
-  creado_por_admin_id                           Int
-  actualizado_por_admin_id                      Int?
-  fecha_creacion                                DateTime            @default(now()) @db.Timestamp(0)
-  fecha_actualizacion                           DateTime            @default(now()) @db.Timestamp(0)
-  admin_eventos_actualizado_por_admin_idToadmin admin?              @relation("eventos_actualizado_por_admin_idToadmin", fields: [actualizado_por_admin_id], references: [id], map: "fk_eventos_actualizado_por")
-  admin_eventos_creado_por_admin_idToadmin      admin               @relation("eventos_creado_por_admin_idToadmin", fields: [creado_por_admin_id], references: [id], map: "fk_eventos_creado_por")
-
-  @@index([actualizado_por_admin_id], map: "idx_actualizado_por")
-  @@index([creado_por_admin_id], map: "idx_creado_por")
-  @@index([estado], map: "idx_estado")
-  @@index([fecha_inicio], map: "idx_fecha_inicio")
-  @@index([tipo_evento], map: "idx_tipo_evento")
+  id                       Int                 @id @default(autoincrement())
+  titulo                   String              @db.VarChar(200)
+  descripcion              String?             @db.Text
+  tipo_evento              eventos_tipo_evento
+  fecha_inicio             DateTime            @db.DateTime(0)
+  fecha_fin                DateTime            @db.DateTime(0)
+  lugar                    String?             @db.VarChar(200)
+  estado                   eventos_estado?     @default(planificado)
+  es_publico               Boolean?            @default(true)
+  observaciones            String?             @db.Text
+  creado_por_admin_id      Int?
+  actualizado_por_admin_id Int?
+  fecha_creacion           DateTime            @default(now()) @db.Timestamp(0)
+  fecha_actualizacion      DateTime            @default(now()) @db.Timestamp(0)
 }
 
-model anuncios {
-  id                                             Int                 @id @default(autoincrement())
-  titulo                                         String              @db.VarChar(200)
-  descripcion                                    String?             @db.Text
-  tipo_evento                                    eventos_tipo_evento
-  fecha_inicio                                   DateTime            @db.DateTime(0)
-  fecha_fin                                      DateTime            @db.DateTime(0)
-  lugar                                          String?             @db.VarChar(200)
-  estado                                         eventos_estado?     @default(planificado)
-  es_publico                                     Boolean?            @default(true)
-  observaciones                                  String?             @db.Text
-  creado_por_admin_id                            Int
-  actualizado_por_admin_id                       Int?
-  fecha_creacion                                 DateTime            @default(now()) @db.Timestamp(0)
-  fecha_actualizacion                            DateTime            @default(now()) @db.Timestamp(0)
-  admin_anuncios_actualizado_por_admin_idToadmin admin?              @relation("anuncios_actualizado_por_admin_idToadmin", fields: [actualizado_por_admin_id], references: [id], map: "fk_anuncios_actualizado_por")
-  admin_anuncios_creado_por_admin_idToadmin      admin               @relation("anuncios_creado_por_admin_idToadmin", fields: [creado_por_admin_id], references: [id], map: "fk_anuncios_creado_por")
-
-  @@index([actualizado_por_admin_id], map: "idx_anuncios_actualizado_por")
-  @@index([creado_por_admin_id], map: "idx_anuncios_creado_por")
-  @@index([estado], map: "idx_anuncios_estado")
-  @@index([fecha_inicio], map: "idx_anuncios_fecha_inicio")
-  @@index([tipo_evento], map: "idx_anuncios_tipo_evento")
+model maestro {
+  id                  Int                       @id @default(autoincrement())
+  idusuario           String?                   @unique(map: "idusuario") @db.VarChar(100)
+  nombre              String                    @db.VarChar(50)
+  apellido            String                    @db.VarChar(50)
+  documento_identidad String                    @unique(map: "documento_identidad") @db.VarChar(20)
+  fecha_de_nacimiento DateTime?                 @db.Date
+  genero              String?                   @db.VarChar(10)
+  telefono_movil      String                    @db.VarChar(20)
+  email               String                    @unique(map: "email") @db.VarChar(100)
+  tipo_profesional    maestros_tipo_profesional
+  estado              maestros_estado?          @default(activo)
+  fecha_ingreso       DateTime?                 @db.Date
+  fecha_creacion      DateTime                  @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime                  @default(now()) @db.Timestamp(0)
 }
 
-enum TipoDireccion {
-  casa
-  trabajo
+model padre {
+  id                  Int                   @id @default(autoincrement())
+  idusuario           String?               @unique(map: "idusuario") @db.VarChar(100)
+  nombre              String                @db.VarChar(50)
+  apellido            String                @db.VarChar(50)
+  documento_identidad String?               @db.VarChar(20)
+  tipo_parentesco     padre_tipo_parentesco
+  fecha_de_nacimiento DateTime?             @db.Date
+  genero              String?               @db.VarChar(10)
+  telefono_movil      String?               @db.VarChar(20)
+  email               String?               @db.VarChar(100)
+  activo              Boolean?              @default(true)
+  fecha_creacion      DateTime              @default(now()) @db.Timestamp(0)
+  fecha_actualizacion DateTime              @default(now()) @db.Timestamp(0)
 }
 
-enum TipoProfesional {
-  psicologo
-  terapeuta
-  ambos
-}
-
-enum EstadoMaestro {
+enum admin_estado {
   activo
   inactivo
-  vacaciones
-}
-
-enum TipoParentesco {
-  madre
-  padre
-  tutor
-  guardian
-}
-
-enum EstadoAlumno {
-  activo
-  inactivo
-  graduado
-  retirado
-}
-
-enum Jornada {
-  matutina
-  vespertina
-}
-
-enum EstadoAtencion {
-  activo
-  completado
   suspendido
-  cancelado
-}
-
-enum TipoAtencionMaestro {
-  psicologica
-  terapeutica
-  mixta
-}
-
-enum EstadoAsignacion {
-  activo
-  finalizado
-  transferido
-}
-
-enum TipoSesion {
-  psicologica
-  terapeutica
-  evaluacion
-  seguimiento
-}
-
-enum DiaSemana {
-  lunes
-  martes
-  miercoles
-  jueves
-  viernes
-  sabado
-  domingo
-}
-
-enum EstadoSesion {
-  programada
-  completada
-  cancelada
-  no_asistio
-  reprogramada
-}
-
-enum CalificacionSesion {
-  excelente
-  buena
-  regular
-  deficiente
-}
-
-enum trabajos_sesion_tipo_trabajo {
-  actividad
-  evaluacion
-  proyecto
 }
 
 enum eventos_tipo_evento {
@@ -461,11 +106,11 @@ enum eventos_tipo_evento {
   otro
 }
 
-enum admin_tipo_admin {
-  super_admin
-  admin_eventos
-  admin_academico
-  admin_general
+enum padre_tipo_parentesco {
+  madre
+  padre
+  tutor
+  guardian
 }
 
 enum eventos_estado {
@@ -476,8 +121,26 @@ enum eventos_estado {
   cancelado
 }
 
-enum admin_estado {
+enum maestros_tipo_profesional {
+  psicologo
+  terapeuta
+  ambos
+}
+
+enum alumno_estado {
   activo
   inactivo
-  suspendido
+  graduado
+  retirado
+}
+
+enum maestros_estado {
+  activo
+  inactivo
+  vacaciones
+}
+
+enum alumno_jornada_actual {
+  matutina
+  vespertina
 }

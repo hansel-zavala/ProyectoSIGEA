@@ -1,321 +1,240 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { maestroSchema, MaestroSchema } from "@/lib/formValidationSchemas";
+import { useFormState } from "react-dom";
 import { createMaestro, updateMaestro } from "@/lib/actions";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import InputField from "../InputField";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import { CldUploadWidget } from "next-cloudinary";
+import Image from "next/image";
 
-type MaestroFormProps = {
+type MaestroFormData = MaestroSchema;
+
+const MaestroForm = ({
+    type,
+    data,
+    setOpen,
+}: {
     type: "create" | "update";
-    defaultValues?: MaestroSchema;
-    onClose: () => void;
-};
-
-export default function MaestroForm({ type, defaultValues, onClose }: MaestroFormProps) {
-    const router = useRouter();
-
+    data?: any;
+    setOpen: Dispatch<SetStateAction<boolean>>;
+}) => {
     const {
         register,
         handleSubmit,
-        formState: { errors, isSubmitting },
-        reset,
-    } = useForm<MaestroSchema>({
+        formState: { errors },
+    } = useForm<MaestroFormData>({
         resolver: zodResolver(maestroSchema),
         defaultValues: {
-            ...defaultValues,
-            // Normalize fecha_de_nacimiento to YYYY-MM-DD string if Date or string
-            fecha_de_nacimiento:
-                defaultValues?.fecha_de_nacimiento
-                    ? new Date(defaultValues.fecha_de_nacimiento).toISOString().substring(0, 10)
-                    : "",
+            ...data,
+            fecha_de_nacimiento: data?.fecha_de_nacimiento
+                ? new Date(data.fecha_de_nacimiento)
+                : undefined,
+            fecha_ingreso: data?.fecha_ingreso
+                ? new Date(data.fecha_ingreso)
+                : undefined,
         },
     });
 
-    // To reset form if defaultValues change (e.g. edit)
-    useEffect(() => {
-        if (defaultValues) {
-            reset({
-                ...defaultValues,
-                fecha_de_nacimiento:
-                    defaultValues.fecha_de_nacimiento
-                        ? new Date(defaultValues.fecha_de_nacimiento).toISOString().substring(0, 10)
-                        : "",
-            });
-        }
-    }, [defaultValues, reset]);
+    const [img, setImg] = useState<any>();
+    const router = useRouter();
 
-    const onSubmit = async (data: MaestroSchema) => {
-        try {
-            if (type === "create") {
-                await createMaestro({ success: false, error: false }, data);
-                toast.success("Maestro creado exitosamente");
-            } else {
-                await updateMaestro({ success: false, error: false }, data);
-                toast.success("Maestro actualizado exitosamente");
-            }
-            router.refresh();
-            onClose();
-        } catch (error) {
-            toast.error("Error al guardar el maestro");
-            console.error(error);
+    const [state, formAction] = useFormState(
+        type === "create" ? createMaestro : updateMaestro,
+        {
+            success: false,
+            error: false,
         }
-    };
+    );
+
+    const onSubmit = handleSubmit((formData) => {
+        formAction({
+            ...formData,
+            // imagen: img?.secure_url,
+        });
+    });
+
+    useEffect(() => {
+        if (state.success) {
+            toast(`Maestro ${type === "create" ? "creado" : "actualizado"} correctamente.`);
+            setOpen(false);
+            router.refresh();
+        }
+    }, [state, type, router, setOpen]);
 
     return (
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">{type === "create" ? "Crear Maestro" : "Editar Maestro"}</h2>
+        <form onSubmit={onSubmit} className="flex flex-col gap-6">
+            <h1 className="text-xl font-bold">
+                {type === "create" ? "Registrar Maestro" : "Actualizar Información"}
+            </h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Nombre */}
-                <div>
-                    <label htmlFor="nombre" className="block font-semibold mb-1">
-                        Nombre <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        id="nombre"
-                        {...register("nombre")}
-                        type="text"
-                        className={`input ${errors.nombre ? "border-red-500" : ""}`}
-                    />
-                    {errors.nombre && <p className="text-xs text-red-500">{errors.nombre.message}</p>}
-                </div>
-
-                {/* Apellido */}
-                <div>
-                    <label htmlFor="apellido" className="block font-semibold mb-1">
-                        Apellido <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                        id="apellido"
-                        {...register("apellido")}
-                        type="text"
-                        className={`input ${errors.apellido ? "border-red-500" : ""}`}
-                    />
-                    {errors.apellido && <p className="text-xs text-red-500">{errors.apellido.message}</p>}
-                </div>
-
-                {/* Documento Identidad */}
-                <div>
-                    <label htmlFor="documento_identidad" className="block font-semibold mb-1">
-                        Documento de Identidad
-                    </label>
-                    <input
-                        id="documento_identidad"
-                        {...register("documento_identidad")}
-                        type="text"
-                        className={`input ${errors.documento_identidad ? "border-red-500" : ""}`}
-                    />
-                    {errors.documento_identidad && (
-                        <p className="text-xs text-red-500">{errors.documento_identidad.message}</p>
-                    )}
-                </div>
-
-                {/* Fecha de Nacimiento */}
-                <div>
-                    <label htmlFor="fecha_de_nacimiento" className="block font-semibold mb-1">
-                        Fecha de Nacimiento
-                    </label>
-                    <input
-                        id="fecha_de_nacimiento"
-                        {...register("fecha_de_nacimiento")}
-                        type="date"
-                        className={`input ${errors.fecha_de_nacimiento ? "border-red-500" : ""}`}
-                    />
-                    {errors.fecha_de_nacimiento && (
-                        <p className="text-xs text-red-500">{errors.fecha_de_nacimiento.message}</p>
-                    )}
-                </div>
-
-                {/* Género */}
-                <div>
-                    <label htmlFor="genero" className="block font-semibold mb-1">
-                        Género
-                    </label>
+                <InputField
+                    label="Nombre"
+                    name="nombre"
+                    register={register}
+                    defaultValue={data?.nombre}
+                    error={errors.nombre}
+                />
+                <InputField
+                    label="Apellido"
+                    name="apellido"
+                    register={register}
+                    defaultValue={data?.apellido}
+                    error={errors.apellido}
+                />
+                <InputField
+                    label="Documento de Identidad"
+                    name="documento_identidad"
+                    register={register}
+                    defaultValue={data?.documento_identidad}
+                    error={errors.documento_identidad}
+                />
+                <InputField
+                    label="Fecha de Nacimiento"
+                    name="fecha_de_nacimiento"
+                    type="date"
+                    register={register}
+                    defaultValue={
+                        data?.fecha_de_nacimiento
+                            ? new Date(data.fecha_de_nacimiento).toISOString().split("T")[0]
+                            : ""
+                    }
+                    error={errors.fecha_de_nacimiento}
+                />
+                <div className="flex flex-col gap-2 w-full">
+                    <label className="text-xs text-gray-500">Género</label>
                     <select
-                        id="genero"
+                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
                         {...register("genero")}
-                        className={`input ${errors.genero ? "border-red-500" : ""}`}
-                        defaultValue={defaultValues?.genero || ""}
+                        defaultValue={data?.genero}
                     >
-                        <option value="">Seleccione</option>
+                        <option value="">Seleccionar...</option>
                         <option value="masculino">Masculino</option>
                         <option value="femenino">Femenino</option>
                         <option value="otro">Otro</option>
                     </select>
-                    {errors.genero && <p className="text-xs text-red-500">{errors.genero.message}</p>}
-                </div>
-
-                {/* Teléfono Móvil */}
-                <div>
-                    <label htmlFor="telefono_movil" className="block font-semibold mb-1">
-                        Teléfono Móvil
-                    </label>
-                    <input
-                        id="telefono_movil"
-                        {...register("telefono_movil")}
-                        type="tel"
-                        className={`input ${errors.telefono_movil ? "border-red-500" : ""}`}
-                    />
-                    {errors.telefono_movil && (
-                        <p className="text-xs text-red-500">{errors.telefono_movil.message}</p>
+                    {errors.genero && (
+                        <p className="text-xs text-red-500">
+                            {errors.genero.message?.toString()}
+                        </p>
                     )}
                 </div>
-
-                {/* Teléfono Trabajo */}
-                <div>
-                    <label htmlFor="telefono_trabajo" className="block font-semibold mb-1">
-                        Teléfono Trabajo
-                    </label>
-                    <input
-                        id="telefono_trabajo"
-                        {...register("telefono_trabajo")}
-                        type="tel"
-                        className={`input ${errors.telefono_trabajo ? "border-red-500" : ""}`}
-                    />
-                    {errors.telefono_trabajo && (
-                        <p className="text-xs text-red-500">{errors.telefono_trabajo.message}</p>
-                    )}
-                </div>
-
-                {/* Email */}
-                <div>
-                    <label htmlFor="email" className="block font-semibold mb-1">
-                        Email
-                    </label>
-                    <input
-                        id="email"
-                        {...register("email")}
-                        type="email"
-                        className={`input ${errors.email ? "border-red-500" : ""}`}
-                    />
-                    {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
-                </div>
-
-                {/* Tipo Profesional */}
-                <div>
-                    <label htmlFor="tipo_profesional" className="block font-semibold mb-1">
-                        Tipo Profesional
-                    </label>
-                    <input
-                        id="tipo_profesional"
-                        {...register("tipo_profesional")}
-                        type="text"
-                        className={`input ${errors.tipo_profesional ? "border-red-500" : ""}`}
-                    />
-                    {errors.tipo_profesional && (
-                        <p className="text-xs text-red-500">{errors.tipo_profesional.message}</p>
-                    )}
-                </div>
-
-                {/* Número Licencia */}
-                <div>
-                    <label htmlFor="numero_licencia" className="block font-semibold mb-1">
-                        Número Licencia
-                    </label>
-                    <input
-                        id="numero_licencia"
-                        {...register("numero_licencia")}
-                        type="text"
-                        className={`input ${errors.numero_licencia ? "border-red-500" : ""}`}
-                    />
-                    {errors.numero_licencia && (
-                        <p className="text-xs text-red-500">{errors.numero_licencia.message}</p>
-                    )}
-                </div>
-
-                {/* Universidad Graduacion */}
-                <div>
-                    <label htmlFor="universidad_graduacion" className="block font-semibold mb-1">
-                        Universidad Graduación
-                    </label>
-                    <input
-                        id="universidad_graduacion"
-                        {...register("universidad_graduacion")}
-                        type="text"
-                        className={`input ${errors.universidad_graduacion ? "border-red-500" : ""}`}
-                    />
-                    {errors.universidad_graduacion && (
-                        <p className="text-xs text-red-500">{errors.universidad_graduacion.message}</p>
-                    )}
-                </div>
-
-                {/* Años Experiencia */}
-                <div>
-                    <label htmlFor="años_experiencia" className="block font-semibold mb-1">
-                        Años de Experiencia
-                    </label>
-                    <input
-                        id="años_experiencia"
-                        {...register("años_experiencia", { valueAsNumber: true })}
-                        type="number"
-                        min={0}
-                        className={`input ${errors.años_experiencia ? "border-red-500" : ""}`}
-                    />
-                    {errors.años_experiencia && (
-                        <p className="text-xs text-red-500">{errors.años_experiencia.message}</p>
-                    )}
-                </div>
-
-                {/* Estado */}
-                <div>
-                    <label htmlFor="estado" className="block font-semibold mb-1">
-                        Estado
-                    </label>
-                    <input
-                        id="estado"
-                        {...register("estado")}
-                        type="text"
-                        className={`input ${errors.estado ? "border-red-500" : ""}`}
-                    />
-                    {errors.estado && <p className="text-xs text-red-500">{errors.estado.message}</p>}
-                </div>
-
-                {/* Fecha Ingreso */}
-                <div>
-                    <label htmlFor="fecha_ingreso" className="block font-semibold mb-1">
-                        Fecha Ingreso
-                    </label>
-                    <input
-                        id="fecha_ingreso"
-                        {...register("fecha_ingreso")}
-                        type="date"
-                        className={`input ${errors.fecha_ingreso ? "border-red-500" : ""}`}
-                        defaultValue={
-                            defaultValues?.fecha_ingreso
-                                ? new Date(defaultValues.fecha_ingreso).toISOString().substring(0, 10)
-                                : ""
-                        }
-                    />
-                    {errors.fecha_ingreso && (
-                        <p className="text-xs text-red-500">{errors.fecha_ingreso.message}</p>
-                    )}
-                </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-                <input
-                    id="activo"
-                    type="checkbox"
-                    {...register("estado")}
-                    defaultChecked={defaultValues?.estado === "activo"}
-                    className="w-4 h-4"
-                    readOnly
+                <InputField
+                    label="Teléfono Móvil"
+                    name="telefono_movil"
+                    register={register}
+                    defaultValue={data?.telefono_movil}
+                    error={errors.telefono_movil}
                 />
-                <label htmlFor="activo" className="text-sm font-semibold">
-                    Activo
-                </label>
+                <InputField
+                    label="Teléfono de Trabajo"
+                    name="telefono_trabajo"
+                    register={register}
+                    defaultValue={data?.telefono_trabajo}
+                    error={errors.telefono_trabajo}
+                />
+                <InputField
+                    label="Correo Electrónico"
+                    name="email"
+                    type="email"
+                    register={register}
+                    defaultValue={data?.email}
+                    error={errors.email}
+                />
+                <InputField
+                    label="Tipo Profesional"
+                    name="tipo_profesional"
+                    register={register}
+                    defaultValue={data?.tipo_profesional}
+                    error={errors.tipo_profesional}
+                />
+                <InputField
+                    label="Número de Licencia"
+                    name="numero_licencia"
+                    register={register}
+                    defaultValue={data?.numero_licencia}
+                    error={errors.numero_licencia}
+                />
+                <InputField
+                    label="Universidad de Graduación"
+                    name="universidad_graduacion"
+                    register={register}
+                    defaultValue={data?.universidad_graduacion}
+                    error={errors.universidad_graduacion}
+                />
+                <InputField
+                    label="Años de Experiencia"
+                    name="años_experiencia"
+                    type="number"
+                    register={register}
+                    defaultValue={data?.años_experiencia}
+                    error={errors.años_experiencia}
+                />
+                <div className="flex flex-col gap-2 w-full">
+                    <label className="text-xs text-gray-500">Estado</label>
+                    <select
+                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+                        {...register("estado")}
+                        defaultValue={data?.estado || "activo"}
+                    >
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                        <option value="suspendido">Suspendido</option>
+                        <option value="retirado">Retirado</option>
+                    </select>
+                    {errors.estado && (
+                        <p className="text-xs text-red-500">
+                            {errors.estado.message?.toString()}
+                        </p>
+                    )}
+                </div>
+                <InputField
+                    label="Fecha de Ingreso"
+                    name="fecha_ingreso"
+                    type="date"
+                    register={register}
+                    defaultValue={
+                        data?.fecha_ingreso
+                            ? new Date(data.fecha_ingreso).toISOString().split("T")[0]
+                            : ""
+                    }
+                    error={errors.fecha_ingreso}
+                />
             </div>
+
+            {/* <CldUploadWidget
+                uploadPreset="school"
+                onSuccess={(result, { widget }) => {
+                    setImg(result.info);
+                    widget.close();
+                }}
+            >
+                {({ open }) => (
+                    <div
+                        className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
+                        onClick={() => open()}
+                    >
+                        <Image src="/upload.png" alt="" width={28} height={28} />
+                        <span>Subir Fotografía</span>
+                    </div>
+                )}
+            </CldUploadWidget> */}
+
+            {state.error && <p className="text-red-500">Algo salió mal al enviar el formulario.</p>}
 
             <button
                 type="submit"
-                disabled={isSubmitting}
-                className="btn-primary disabled:opacity-50"
+                className="bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-md"
             >
-                {type === "create" ? "Crear Maestro" : "Actualizar Maestro"}
+                {type === "create" ? "Crear Maestro" : "Actualizar Información"}
             </button>
         </form>
     );
-}
+};
+
+export default MaestroForm;

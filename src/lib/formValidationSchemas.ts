@@ -114,7 +114,7 @@ export const maestroSchema = z.object({
   fecha_ingreso: z.string().optional().nullable(),
   fecha_creacion: z.string().optional().nullable(),
   fecha_actualizacion: z.string().optional().nullable(),
-  imagen: z.string().optional()
+//   imagen: z.string().optional()
 });
 
 export type MaestroSchema = z.infer<typeof maestroSchema>;
