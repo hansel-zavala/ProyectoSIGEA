@@ -5,12 +5,10 @@ import { useForm } from "react-hook-form";
 import { padreSchema, PadreSchema } from "@/lib/formValidationSchemas";
 import { useFormState } from "react-dom";
 import { createPadre, updatePadre } from "@/lib/actions";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import InputField from "../InputField";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { CldUploadWidget } from "next-cloudinary";
-import Image from "next/image";
 
 type PadreFormData = PadreSchema;
 
@@ -37,7 +35,6 @@ const PadreForm = ({
         },
     });
 
-    const [img, setImg] = useState<any>();
     const router = useRouter();
 
     const [state, formAction] = useFormState(
@@ -49,10 +46,7 @@ const PadreForm = ({
     );
 
     const onSubmit = handleSubmit((formData) => {
-        formAction({
-            ...formData,
-            //   img: img?.secure_url,
-        });
+        formAction(formData);
     });
 
     useEffect(() => {
@@ -121,7 +115,7 @@ const PadreForm = ({
                     }
                     error={errors.fecha_de_nacimiento}
                 />
-                <div className="flex flex-col gap-2 w-full md:w-1/4">
+                <div className="flex flex-col gap-2 w-full">
                     <label className="text-xs text-gray-500">Género</label>
                     <select
                         className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
@@ -134,26 +128,12 @@ const PadreForm = ({
                     </select>
                 </div>
                 <InputField
-                    label="Lugar de Nacimiento"
-                    name="lugar_de_nacimiento"
-                    register={register}
-                    defaultValue={data?.lugar_de_nacimiento}
-                    error={errors.lugar_de_nacimiento}
-                />
-                <InputField
                     label="Teléfono Móvil"
                     name="telefono_movil"
                     register={register}
                     defaultValue={data?.telefono_movil}
                     error={errors.telefono_movil}
                 />
-                {/* <InputField
-                    label="Teléfono de Trabajo"
-                    name="telefono_trabajo"
-                    register={register}
-                    defaultValue={data?.telefono_trabajo}
-                    error={errors.telefono_trabajo}
-                /> */}
                 <InputField
                     label="Correo Electrónico"
                     name="email"
@@ -162,61 +142,27 @@ const PadreForm = ({
                     defaultValue={data?.email}
                     error={errors.email}
                 />
-                <InputField
-                    label="Ocupación"
-                    name="ocupacion"
-                    register={register}
-                    defaultValue={data?.ocupacion}
-                    error={errors.ocupacion}
-                />
-                <InputField
-                    label="Lugar de Trabajo"
-                    name="lugar_trabajo"
-                    register={register}
-                    defaultValue={data?.lugar_trabajo}
-                    error={errors.lugar_trabajo}
-                />
-                <InputField
-                    label="Estado Civil"
-                    name="estado_civil"
-                    register={register}
-                    defaultValue={data?.estado_civil}
-                    error={errors.estado_civil}
-                />
-                {/* <InputField
-                    label="Nivel Educativo"
-                    name="nivel_educativo"
-                    register={register}
-                    defaultValue={data?.nivel_educativo}
-                    error={errors.nivel_educativo}
-                /> */}
-                {/* <InputField
-                    label="Ingresos Mensuales"
-                    name="ingresos_mensuales"
-                    type="number"
-                    register={register}
-                    defaultValue={data?.ingresos_mensuales}
-                    error={errors.ingresos_mensuales}
-                /> */}
+                <div className="flex items-center gap-2 col-span-2">
+                    <input
+                        type="checkbox"
+                        {...register("activo")}
+                        defaultChecked={data?.activo !== false}
+                    />
+                    <label className="text-sm">Activo</label>
+                </div>
             </div>
 
-            {/* <CldUploadWidget
-                uploadPreset="school"
-                onSuccess={(result, { widget }) => {
-                    setImg(result.info);
-                    widget.close();
-                }}
-            >
-                {({ open }) => (
-                    <div
-                        className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-                        onClick={() => open()}
-                    >
-                        <Image src="/upload.png" alt="" width={28} height={28} />
-                        <span>Subir Fotografía</span>
-                    </div>
-                )}
-            </CldUploadWidget> */}
+            {data && (
+                <InputField
+                    label="Id"
+                    name="id"
+                    defaultValue={data?.id}
+                    register={register}
+                    error={errors?.id}
+                    hidden
+                    type="number"
+                />
+            )}
 
             {state.error && <p className="text-red-500">Algo salió mal al enviar el formulario.</p>}
 

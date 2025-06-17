@@ -4,13 +4,13 @@ import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Prisma, Alumno, Direccion } from "@prisma/client";
+import { Prisma, alumno} from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 
 import { auth } from "@clerk/nextjs/server";
 
-type ListaAlumno = Alumno & { direccion: Direccion | null };
+type ListaAlumno = alumno
 
 const ListaAlumnoPage = async ({
     searchParams,
@@ -40,11 +40,11 @@ const ListaAlumnoPage = async ({
             accessor: "anodeadmision",
             className: "hidden lg:table-cell",
         },
-        {
-            header: "Direccion",
-            accessor: "direccion",
-            className: "hidden lg:table-cell",
-        },
+        // {
+        //     header: "Direccion",
+        //     accessor: "direccion",
+        //     className: "hidden lg:table-cell",
+        // },
         ...(role === "admin"
             ? [
                 {
@@ -70,17 +70,14 @@ const ListaAlumnoPage = async ({
                 /> */}
                 <div className="flex flex-col">
                     <h3 className="font-semibold">{item.nombre + ' ' + item.apellido}</h3>
-                    {item.email && (
-                        <p className="text-xs text-gray-500">{item.email}</p>
-                    )}
                 </div>
             </td>
             <td className="hidden md:table-cell">
-                {new Date(item.fechaDeNacimiento).toLocaleDateString()}
+                {new Date(item.fecha_de_nacimiento).toLocaleDateString()}
             </td>
             <td className="hidden md:table-cell">{item.genero}</td>
             <td className="hidden md:table-cell">{item.a_o_de_ingreso}</td>
-            <td className="hidden md:table-cell">{item.direccion?.direccionCompleta}</td>
+            {/* <td className="hidden md:table-cell">{item.direccion?.direccionCompleta}</td> */}
             <td>
                 <div className="flex items-center gap-2">
                     <Link href={`/list/students/${item.id}`}>
@@ -105,7 +102,7 @@ const ListaAlumnoPage = async ({
 
     // URL PARAMS CONDITION
 
-    const query: Prisma.AlumnoWhereInput = {};
+    const query: Prisma.alumnoWhereInput = {};
 
     if (queryParams) {
         for (const [key, value] of Object.entries(queryParams)) {
@@ -115,7 +112,6 @@ const ListaAlumnoPage = async ({
                         query.OR = [
                             { nombre: { contains: value} },
                             { apellido: { contains: value} },
-                            { email: { contains: value} }
                         ];
                         break;
                     default:
@@ -128,9 +124,6 @@ const ListaAlumnoPage = async ({
     const [data, count] = await prisma.$transaction([
         prisma.alumno.findMany({
             where: query,
-            include: {
-                direccion: true,
-            },
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1),
         }),

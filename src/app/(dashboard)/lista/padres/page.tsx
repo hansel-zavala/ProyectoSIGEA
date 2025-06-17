@@ -4,18 +4,12 @@ import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Padre, Prisma, Alumno, Direccion, AlumnoPadre } from "@prisma/client";
+import { padre, Prisma} from "@prisma/client";
 import Image from "next/image";
 
 import { auth } from "@clerk/nextjs/server";
 
-type ListaPadre = Padre & {
-    alumnoPadreRelaciones: (AlumnoPadre & {
-        alumno: Alumno;
-    })[];
-    direccionCasa: Direccion | null;
-    direccionTrabajo: Direccion | null;
-};
+type ListaPadre = padre
 
 const PaginaListaPadre = async ({
     searchParams,
@@ -68,13 +62,13 @@ const PaginaListaPadre = async ({
                     {item.email && (
                         <p className="text-xs text-gray-500">{item.email}</p>
                     )}
-                    {item.tipoParentesco && (
+                    {/* {item.tipo_parentesco && (
                         <p className="text-xs text-gray-400 capitalize">{item.tipoParentesco}</p>
-                    )}
+                    )} */}
                 </div>
             </td>
             {/* Mostrar hijo */}
-            <td className="hidden md:table-cell">
+            {/* <td className="hidden md:table-cell">
                 {item.alumnoPadreRelaciones.length > 0 ? (
                     <div className="flex flex-col gap-1 text-xs">
                         {item.alumnoPadreRelaciones.map((rel) => (
@@ -86,10 +80,10 @@ const PaginaListaPadre = async ({
                 ) : (
                     <span className="text-gray-400 italic text-xs">No children</span>
                 )}
-            </td>
+            </td> */}
 
             {/* Mostar telefonos */}
-            <td className="hidden lg:table-cell">
+            {/* <td className="hidden lg:table-cell">
                 <div className="flex flex-col gap-1 text-xs">
                     {item.telefonoMovil && (
                         <div>
@@ -105,9 +99,9 @@ const PaginaListaPadre = async ({
                         <span className="text-gray-400 italic">No phone</span>
                     )}
                 </div>
-            </td>
+            </td> */}
             {/* Mostrar direccion */}
-            <td className="hidden lg:table-cell">
+            {/* <td className="hidden lg:table-cell">
                 <div className="text-xs">
                     {item.direccionCasa && (
                         <div className="mb-2">
@@ -135,7 +129,7 @@ const PaginaListaPadre = async ({
                         <span className="text-gray-400 italic">No address</span>
                     )}
                 </div>
-            </td>
+            </td> */}
             <td>
                 <div className="flex items-center gap-2">
                     {role === "admin" && (
@@ -155,7 +149,7 @@ const PaginaListaPadre = async ({
 
     // URL PARAMS CONDITION
 
-    const query: Prisma.PadreWhereInput = {};
+    const query: Prisma.padreWhereInput = {};
 
     if (queryParams) {
         for (const [key, value] of Object.entries(queryParams)) {
@@ -178,15 +172,15 @@ const PaginaListaPadre = async ({
     const [data, count] = await prisma.$transaction([
         prisma.padre.findMany({
             where: query,
-            include: {
-                alumnoPadreRelaciones: {
-                    include: {
-                        alumno: true,
-                    },
-                },
-                direccionCasa: true,    // Fixed: Include home address
-                direccionTrabajo: true, // Fixed: Include work address
-            },
+            // include: {
+            //     alumnoPadreRelaciones: {
+            //         include: {
+            //             alumno: true,
+            //         },
+            //     },
+            //     direccionCasa: true,    // Fixed: Include home address
+            //     direccionTrabajo: true, // Fixed: Include work address
+            // },
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1),
         }),

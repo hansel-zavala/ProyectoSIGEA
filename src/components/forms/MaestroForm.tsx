@@ -5,12 +5,10 @@ import { useForm } from "react-hook-form";
 import { maestroSchema, MaestroSchema } from "@/lib/formValidationSchemas";
 import { useFormState } from "react-dom";
 import { createMaestro, updateMaestro } from "@/lib/actions";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import InputField from "../InputField";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { CldUploadWidget } from "next-cloudinary";
-import Image from "next/image";
 
 type MaestroFormData = MaestroSchema;
 
@@ -40,7 +38,6 @@ const MaestroForm = ({
         },
     });
 
-    const [img, setImg] = useState<any>();
     const router = useRouter();
 
     const [state, formAction] = useFormState(
@@ -52,10 +49,7 @@ const MaestroForm = ({
     );
 
     const onSubmit = handleSubmit((formData) => {
-        formAction({
-            ...formData,
-            // imagen: img?.secure_url,
-        });
+        formAction(formData);
     });
 
     useEffect(() => {
@@ -114,9 +108,9 @@ const MaestroForm = ({
                         defaultValue={data?.genero}
                     >
                         <option value="">Seleccionar...</option>
-                        <option value="masculino">Masculino</option>
-                        <option value="femenino">Femenino</option>
-                        <option value="otro">Otro</option>
+                        <option value="Masculino">Masculino</option>
+                        <option value="Femenino">Femenino</option>
+                        <option value="Otro">Otro</option>
                     </select>
                     {errors.genero && (
                         <p className="text-xs text-red-500">
@@ -132,13 +126,6 @@ const MaestroForm = ({
                     error={errors.telefono_movil}
                 />
                 <InputField
-                    label="Teléfono de Trabajo"
-                    name="telefono_trabajo"
-                    register={register}
-                    defaultValue={data?.telefono_trabajo}
-                    error={errors.telefono_trabajo}
-                />
-                <InputField
                     label="Correo Electrónico"
                     name="email"
                     type="email"
@@ -146,35 +133,23 @@ const MaestroForm = ({
                     defaultValue={data?.email}
                     error={errors.email}
                 />
-                <InputField
-                    label="Tipo Profesional"
-                    name="tipo_profesional"
-                    register={register}
-                    defaultValue={data?.tipo_profesional}
-                    error={errors.tipo_profesional}
-                />
-                <InputField
-                    label="Número de Licencia"
-                    name="numero_licencia"
-                    register={register}
-                    defaultValue={data?.numero_licencia}
-                    error={errors.numero_licencia}
-                />
-                <InputField
-                    label="Universidad de Graduación"
-                    name="universidad_graduacion"
-                    register={register}
-                    defaultValue={data?.universidad_graduacion}
-                    error={errors.universidad_graduacion}
-                />
-                <InputField
-                    label="Años de Experiencia"
-                    name="años_experiencia"
-                    type="number"
-                    register={register}
-                    defaultValue={data?.años_experiencia}
-                    error={errors.años_experiencia}
-                />
+                <div className="flex flex-col gap-2 w-full">
+                    <label className="text-xs text-gray-500">Tipo Profesional</label>
+                    <select
+                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
+                        {...register("tipo_profesional")}
+                        defaultValue={data?.tipo_profesional || "ambos"}
+                    >
+                        <option value="psicologo">Psicólogo</option>
+                        <option value="terapeuta">Terapeuta</option>
+                        <option value="ambos">Ambos</option>
+                    </select>
+                    {errors.tipo_profesional && (
+                        <p className="text-xs text-red-500">
+                            {errors.tipo_profesional.message?.toString()}
+                        </p>
+                    )}
+                </div>
                 <div className="flex flex-col gap-2 w-full">
                     <label className="text-xs text-gray-500">Estado</label>
                     <select
@@ -184,8 +159,7 @@ const MaestroForm = ({
                     >
                         <option value="activo">Activo</option>
                         <option value="inactivo">Inactivo</option>
-                        <option value="suspendido">Suspendido</option>
-                        <option value="retirado">Retirado</option>
+                        <option value="vacaciones">Vacaciones</option>
                     </select>
                     {errors.estado && (
                         <p className="text-xs text-red-500">
@@ -207,23 +181,17 @@ const MaestroForm = ({
                 />
             </div>
 
-            {/* <CldUploadWidget
-                uploadPreset="school"
-                onSuccess={(result, { widget }) => {
-                    setImg(result.info);
-                    widget.close();
-                }}
-            >
-                {({ open }) => (
-                    <div
-                        className="text-xs text-gray-500 flex items-center gap-2 cursor-pointer"
-                        onClick={() => open()}
-                    >
-                        <Image src="/upload.png" alt="" width={28} height={28} />
-                        <span>Subir Fotografía</span>
-                    </div>
-                )}
-            </CldUploadWidget> */}
+            {data && (
+                <InputField
+                    label="Id"
+                    name="id"
+                    defaultValue={data?.id}
+                    register={register}
+                    error={errors?.id}
+                    hidden
+                    type="number"
+                />
+            )}
 
             {state.error && <p className="text-red-500">Algo salió mal al enviar el formulario.</p>}
 

@@ -3,16 +3,14 @@ import Pagination from "@/components/Paginacion";
 import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
-import {Maestro, Prisma, Direccion, TipoDireccion} from "@prisma/client";
+import {maestro, Prisma,} from "@prisma/client";
 import Image from "next/image";
 import Link from "next/link";
 import { ITEM_PER_PAGE } from "@/lib/settings";
 import { auth } from "@clerk/nextjs/server";
 
 // Fixed type definition
-type ListaMaestro = Maestro & {
-    direccion: Direccion | null;
-};
+type ListaMaestro = maestro
 
 const PaginaListaMaestro = async ({
     searchParams,
@@ -68,13 +66,13 @@ const PaginaListaMaestro = async ({
             className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
         >
             <td className="flex items-center gap-4 p-4">
-                <Image
+                {/* <Image
                     src={item.imagen || "/noAvatar.png"}
                     alt=""
                     width={40}
                     height={40}
                     className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-                />
+                /> */}
                 <div className="flex flex-col">
                     <h3 className="font-semibold">{item.nombre} {item.apellido}</h3>
                     <p className="text-xs text-gray-500">{item?.email}</p>
@@ -83,15 +81,15 @@ const PaginaListaMaestro = async ({
             </td>
             <td className="hidden md:table-cell">{item.idusuario}</td>
             <td className="hidden md:table-cell">
-                <span className="capitalize">{item.tipoProfesional}</span>
+                <span className="capitalize">{item.tipo_profesional}</span>
             </td>
-            <td className="hidden md:table-cell">
-                {item.numeroLicencia || (
+            {/* <td className="hidden md:table-cell">
+                {item.num || (
                     <span className="text-gray-400 italic text-xs">No license</span>
                 )}
-            </td>
+            </td> */}
             {/* Fixed phone display */}
-            <td className="hidden lg:table-cell">
+            {/* <td className="hidden lg:table-cell">
                 <div className="flex flex-col gap-1 text-xs">
                     {item.telefonoMovil && (
                         <div>
@@ -107,9 +105,9 @@ const PaginaListaMaestro = async ({
                         <span className="text-gray-400 italic">No phone</span>
                     )}
                 </div>
-            </td>
+            </td> */}
             {/* Fixed address display */}
-            <td className="hidden lg:table-cell">
+            {/* <td className="hidden lg:table-cell">
                 <div className="text-xs">
                     {item.direccion ? (
                         <div>
@@ -129,7 +127,7 @@ const PaginaListaMaestro = async ({
                         <span className="text-gray-400 italic">No address</span>
                     )}
                 </div>
-            </td>
+            </td> */}
             <td>
                 <div className="flex items-center gap-2">
                     <Link href={`/lista/maestros/${item.id}`}>
@@ -153,7 +151,7 @@ const PaginaListaMaestro = async ({
     const p = page ? parseInt(page) : 1;
 
     // URL PARAMS CONDITION
-    const query: Prisma.MaestroWhereInput = {};
+    const query: Prisma.maestroWhereInput = {};
 
     if (queryParams) {
         for (const [key, value] of Object.entries(queryParams)) {
@@ -168,7 +166,7 @@ const PaginaListaMaestro = async ({
                         ];
                         break;
                     case "tipoProfesional":
-                        query.tipoProfesional = value as any;
+                        query.tipo_profesional = value as any;
                         break;
                     case "estado":
                         query.estado = value as any;
@@ -183,9 +181,6 @@ const PaginaListaMaestro = async ({
     const [data, count] = await prisma.$transaction([
         prisma.maestro.findMany({
             where: query,
-            include: {
-                direccion: true  // This was already correct
-            },
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1),
         }),

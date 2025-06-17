@@ -49,7 +49,7 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
                         id: true,
                         nombre: true,
                         apellido: true,
-                        tipoProfesional: true
+                        tipo_profesional: true
                     },
                 });
                 // Guarda los maestros en relatedData para pasarlos al formulario
