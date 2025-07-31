@@ -4,11 +4,11 @@ import Table from "@/components/Tabla";
 import TableSearch from "@/components/TableSearch";
 import prisma from "@/lib/prisma";
 import { ITEM_PER_PAGE } from "@/lib/settings";
-import { anuncios, Prisma } from "@prisma/client";
+import { eventos, Prisma } from "@prisma/client";
 import Image from "next/image";
 import { auth } from "@clerk/nextjs/server";
 
-type ListaAnuncios = anuncios;
+type ListaAnuncios = eventos;
 
 const ListaAnunciosPage = async ({
     searchParams,
@@ -85,8 +85,8 @@ const ListaAnunciosPage = async ({
                 <div className="flex items-center gap-2">
                     {role === "admin" && (
                         <>
-                            <FormContainer table="anuncio" type="update" data={item} />
-                            <FormContainer table="anuncio" type="delete" id={item.id} />
+                            <FormContainer table="evento" type="update" data={item} />
+                            <FormContainer table="evento" type="delete" id={item.id} />
                         </>
                     )}
                 </div>
@@ -99,7 +99,7 @@ const ListaAnunciosPage = async ({
     const p = page ? parseInt(page) : 1;
 
     // Build the query object for filtering
-    const query: Prisma.anunciosWhereInput = {};
+    const query: Prisma.eventosWhereInput  = {};
 
     // Apply search filter if provided
     if (queryParams) {
@@ -122,13 +122,13 @@ const ListaAnunciosPage = async ({
 
     // Fetch announcements and count in a single transaction
     const [data, count] = await prisma.$transaction([
-        prisma.anuncios.findMany({
+        prisma.eventos.findMany({
             where: query,
             orderBy: { fecha_inicio: "desc" }, // Show newest announcements first
             take: ITEM_PER_PAGE,
             skip: ITEM_PER_PAGE * (p - 1),
         }),
-        prisma.anuncios.count({ where: query }),
+        prisma.eventos.count({ where: query }),
     ]);
 
     console.log(data)
@@ -150,7 +150,7 @@ const ListaAnunciosPage = async ({
                             <Image src="/sort.png" alt="" width={14} height={14} />
                         </button>
                         {role === "admin" && (
-                            <FormContainer table="anuncio" type="create" />
+                            <FormContainer table="evento" type="create" />
                         )}
                     </div>
                 </div>

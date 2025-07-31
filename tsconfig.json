@@ -17,6 +17,8 @@
         "name": "next"
       }
     ],
+    // --- CORRECCIÓN AQUÍ ---
+    // Esta sección le dice a tu proyecto cómo resolver las rutas con "@"
     "paths": {
       "@/*": ["./src/*"]
     }

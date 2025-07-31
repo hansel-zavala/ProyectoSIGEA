@@ -16,7 +16,7 @@ const EventCalendarContainer = async ({
         <Image src="/moreDark.png" alt="" width={20} height={20} />
       </div>
       <div className="flex flex-col gap-4">
-        <EventList dateParam={date} />
+        <EventList date={date} />
       </div>
     </div>
   );

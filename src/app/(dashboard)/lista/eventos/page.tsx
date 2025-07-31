@@ -185,14 +185,7 @@ const PaginaListaEventos = async ({
         const [data, count] = await prisma.$transaction([
             prisma.eventos.findMany({
                 where: query,
-                include: {
-                    // creado_por_admin: {
-                    //     select: {
-                    //         nombre: true,
-                    //         apellido: true
-                    //     }
-                    // }
-                },
+                
                 orderBy: { fecha_inicio: "desc" }, // Show newest events first
                 take: ITEM_PER_PAGE,
                 skip: ITEM_PER_PAGE * (p - 1),

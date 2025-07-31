@@ -8,9 +8,9 @@ import { auth } from "@clerk/nextjs/server";
 const StudentPage = async () => {
   const { userId } = auth();
 
-  const classItem = await prisma.class.findMany({
+  const classItem = await prisma.materia.findMany({
     where: {
-      students: { some: { id: userId! } },
+      alumnos: { some: { idusuario: userId! } },
     },
   });
 

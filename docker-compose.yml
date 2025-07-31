@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
-  postgress:
+  postgres:
     image: postgres:15
-    container_name: postgres_db
     environment:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
@@ -15,11 +12,13 @@ services:
     
   app:
     build: .
-    container_name: nextjs_app
     ports:
       - '3000:3000'
-    environment:
-      - DATABASE_URL: postgresql://myuser:mypassword@[YOUR_SERVER_IP]:5432/mydb
+    # --- CORRECCIÓN AQUÍ ---
+    # Le decimos que cargue las variables (incluida DATABASE_URL)
+    # directamente desde tu archivo .env
+    env_file:
+      - ./.env.docker
     depends_on:
       - postgres
 

@@ -1,41 +1,46 @@
-import { FieldError } from "react-hook-form";
+// src/components/InputField.tsx
+"use client";
 
+import { FieldError, UseFormRegisterReturn } from "react-hook-form";
+
+// Define los tipos de las props que el componente InputField puede recibir
 type InputFieldProps = {
-    label: string;
-    type?: string;
-    register: any;
-    name: string;
-    defaultValue?: string;
-    error?: FieldError;
-    hidden?: boolean;
-    inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  label: string;
+  name: string;
+  type?: string;
+  register: UseFormRegisterReturn; // <--- CORRECCIÓN 1: Tipo más específico
+  error?: FieldError;
+  defaultValue?: string;
+  inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  hidden?: boolean;
 };
 
 const InputField = ({
-    label,
-    type = "text",
-    register,
-    name,
-    defaultValue,
-    error,
-    hidden,
-    inputProps,
+  label,
+  name,
+  type = "text",
+  register,
+  error,
+  defaultValue,
+  inputProps,
+  hidden,
 }: InputFieldProps) => {
-    return (
-        <div className={hidden ? "hidden" : "flex flex-col gap-2 w-full md:w-1/1"}>
-            <label className="text-xs text-gray-500">{label}</label>
-            <input
-                type={type}
-                {...register(name)}
-                className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                {...inputProps}
-                defaultValue={defaultValue}
-            />
-            {error?.message && (
-                <p className="text-xs text-red-400">{error.message.toString()}</p>
-            )}
-        </div>
-    );
+  return (
+    <div className={hidden ? "hidden" : "flex flex-col gap-2 mb-4 w-full"}>
+      <label htmlFor={name} className="text-sm font-medium">
+        {label}
+      </label>
+      <input
+        id={name}
+        type={type}
+        {...register} // <--- CORRECCIÓN 2: Se pasa el 'register' directamente
+        defaultValue={defaultValue}
+        className="p-2 border rounded-md"
+        {...inputProps}
+      />
+      {error && <p className="text-xs text-red-500 mt-1">{error.message}</p>}
+    </div>
+  );
 };
 
 export default InputField;

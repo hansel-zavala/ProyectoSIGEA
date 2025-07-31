@@ -10,6 +10,7 @@ import { auth } from "@clerk/nextjs/server";
 export type FormContainerProps = {
     // Define las tablas permitidas para el formulario
     table:
+    | "materia"
     | "maestro"
     | "alumno"
     | "padre"
@@ -56,7 +57,20 @@ const FormContainer = async ({ table, type, data, id }: FormContainerProps) => {
                 relatedData = { maestros };
                 break;
 
-            // Para maestro no se agrega data relacionada (por ahora)
+            case "materia": {
+        // Al crear/editar una materia, necesitamos la lista de maestros para asignarla.
+                const maestros = await prisma.maestro.findMany({
+                    where: { estado: "activo" },
+                    select: {
+                        id: true,
+                        nombre: true,
+                        apellido: true,
+                    },
+                });
+                relatedData = { maestros };
+                break;
+                }
+                // Para maestro no se agrega data relacionada (por ahora)
             case "maestro":
                 // Se puede agregar data relacionada si es necesario
                 break;

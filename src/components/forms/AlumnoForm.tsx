@@ -1,272 +1,98 @@
+// src/components/forms/AlumnoForm.tsx
 "use client";
-
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import InputField from "../InputField";
-import { Dispatch, SetStateAction, useEffect } from "react";
-import { useFormState } from "react-dom";
-import { alumnoSchema, AlumnoSchema } from "@/lib/formValidationSchemas";
-import { createAlumno, updateAlumno } from "@/lib/actions";
-import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { AlumnoSchema, AlumnoValidationSchema } from "@/lib/formValidationSchemas";
+import { zodResolver } from "@hookform/resolvers/zod";
+import InputField from "@/components/InputField";
+import { alumno, maestro, alumno_estado, alumno_jornada_actual, genero } from "@prisma/client";
+import { Dispatch, SetStateAction } from "react";
 
-type AlumnoFormData = AlumnoSchema
-
-const AlumnoForm = ({
-    type,
-    data,
-    setOpen,
-    relatedData,
-}: {
+type AlumnoFormProps = {
     type: "create" | "update";
-    data?: any;
+    data?: alumno;
     setOpen: Dispatch<SetStateAction<boolean>>;
-    relatedData?: any;
-}) => {
+    relatedData?: {
+        maestros: maestro[];
+    };
+};
+
+const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
     const {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<AlumnoFormData>({
-        resolver: zodResolver(alumnoSchema),
+    } = useForm<AlumnoSchema>({
+        resolver: zodResolver(AlumnoValidationSchema),
         defaultValues: {
             ...data,
-            fecha_de_nacimiento: data?.fecha_de_nacimiento
-                ? new Date(data.fecha_de_nacimiento)
-                : undefined,
-            fecha_evaluacion: data?.fecha_evaluacion
-                ? new Date(data.fecha_evaluacion)
-                : undefined,
+            // @ts-ignore
+            fecha_de_nacimiento: data?.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split('T')[0] : undefined,
+            // @ts-ignore
+            fecha_evaluacion: data?.fecha_evaluacion ? new Date(data.fecha_evaluacion).toISOString().split('T')[0] : undefined,
         },
     });
 
-    const [state, formAction] = useFormState(
-        type === "create" ? createAlumno : updateAlumno,
-        {
-            success: false,
-            error: false,
-        }
-    );
-
-    const onSubmit = handleSubmit((data) => {
-        formAction(data);
-    });
-
-    const router = useRouter();
-
-    useEffect(() => {
-        if (state.success) {
-            toast(`Alumno ${type === "create" ? "creado" : "actualizado"} exitosamente!`);
-            setOpen(false);
-            router.refresh();
-        }
-    }, [state, router, type, setOpen]);
-
-    const { maestros = [] } = relatedData || {};
-
     return (
-        <form className="flex flex-col gap-8" onSubmit={onSubmit}>
-            <h1 className="text-xl font-semibold">
-                {type === "create" ? "Crear nuevo alumno" : "Actualizar alumno"}
-            </h1>
-
-            <span className="text-xs text-gray-400 font-medium">
-                Información Personal
-            </span>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <InputField
-                    label="Nombre"
-                    name="nombre"
-                    defaultValue={data?.nombre}
-                    register={register}
-                    error={errors.nombre}
-                />
-                <InputField
-                    label="Apellido"
-                    name="apellido"
-                    defaultValue={data?.apellido}
-                    register={register}
-                    error={errors.apellido}
-                />
-                <InputField
-                    label="Fecha de Nacimiento"
-                    name="fecha_de_nacimiento"
-                    defaultValue={data?.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split("T")[0] : ""}
-                    register={register}
-                    error={errors.fecha_de_nacimiento}
-                    type="date"
-                />
-                <div className="flex flex-col gap-2 w-full md:w">
-                    <label className="text-xs text-gray-500">Género</label>
-                    <select
-                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                        {...register("genero")}
-                        defaultValue={data?.genero}
-                    >
-                        <option value="">Seleccionar...</option>
-                        <option value="masculino">Masculino</option>
-                        <option value="femenino">Femenino</option>
+        <>
+            {data?.id && <input type="hidden" {...register("id")} />}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <InputField label="Nombre" name="nombre" register={register("nombre")} error={errors.nombre} />
+                <InputField label="Apellido" name="apellido" register={register("apellido")} error={errors.apellido} />
+                <InputField label="Fecha de Nacimiento" name="fecha_de_nacimiento" type="date" register={register("fecha_de_nacimiento")} error={errors.fecha_de_nacimiento} />
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Género</label>
+                    {/* --- CORRECCIÓN AQUÍ --- */}
+                    <select {...register("genero")} className="p-2 border rounded-md" defaultValue={data?.genero ?? ''}>
+                        {Object.values(genero).map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                 </div>
-                <InputField
-                    label="Documento de Identidad"
-                    name="documento_identidad"
-                    defaultValue={data?.documento_identidad}
-                    register={register}
-                    error={errors.documento_identidad}
-                />
-                <InputField
-                    label="Lugar de Nacimiento"
-                    name="lugar_de_nacimiento"
-                    defaultValue={data?.lugar_de_nacimiento}
-                    register={register}
-                    error={errors.lugar_de_nacimiento}
-                />
-            </div>
-
-            <span className="text-xs text-gray-400 font-medium">
-                Información Académica
-            </span>
-            <div className="flex justify-between flex-wrap gap-4">
-                <InputField
-                    label="Institución de Procedencia"
-                    name="institucion_procedencia"
-                    defaultValue={data?.institucion_procedencia}
-                    register={register}
-                    error={errors.institucion_procedencia}
-                />
-                <InputField
-                    label="Año de Ingreso"
-                    name="a_o_de_ingreso"
-                    defaultValue={data?.a_o_de_ingreso}
-                    register={register}
-                    error={errors.a_o_de_ingreso}
-                    type="number"
-                />
-                <div className="flex flex-col gap-2 w-full md:w-1/4">
-                    <label className="text-xs text-gray-500">Estado</label>
-                    <select
-                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                        {...register("estado")}
-                        defaultValue={data?.estado || "activo"}
-                    >
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                        <option value="graduado">Graduado</option>
-                        <option value="retirado">Retirado</option>
+                <InputField label="Documento de Identidad" name="documento_identidad" register={register("documento_identidad")} error={errors.documento_identidad} />
+                <InputField label="Lugar de Nacimiento" name="lugar_de_nacimiento" register={register("lugar_de_nacimiento")} error={errors.lugar_de_nacimiento} />
+                <InputField label="Institución de Procedencia" name="institucion_procedencia" register={register("institucion_procedencia")} error={errors.institucion_procedencia} />
+                <InputField label="Año de Ingreso" name="a_o_de_ingreso" type="number" register={register("a_o_de_ingreso")} error={errors.a_o_de_ingreso} />
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Estado</label>
+                    {/* --- CORRECCIÓN AQUÍ (Línea 56) --- */}
+                    <select {...register("estado")} className="p-2 border rounded-md" defaultValue={data?.estado ?? ''}>
+                        {Object.values(alumno_estado).map(e => <option key={e} value={e}>{e}</option>)}
                     </select>
                 </div>
-                <div className="flex flex-col gap-2 w-full md:w-1/4">
-                    <label className="text-xs text-gray-500">Jornada</label>
-                    <select
-                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                        {...register("jornada_actual")}
-                        defaultValue={data?.jornada_actual || "matutina"}
-                    >
-                        <option value="matutina">Matutina</option>
-                        <option value="vespertina">Vespertina</option>
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Jornada Actual</label>
+                    {/* --- CORRECCIÓN AQUÍ --- */}
+                    <select {...register("jornada_actual")} className="p-2 border rounded-md" defaultValue={data?.jornada_actual ?? ''}>
+                        {Object.values(alumno_jornada_actual).map(j => <option key={j} value={j}>{j}</option>)}
                     </select>
                 </div>
-                {/* <div className="flex flex-col gap-2 w-full md:w-1/4">
-                    <label className="text-xs text-gray-500">Maestro Actual</label>
-                    <select
-                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                        {...register("maestro_actual_id")}
-                        defaultValue={data?.maestro_actual_id}
-                    >
-                        <option value="">Sin asignar</option>
-                        {maestros.map((maestro: any) => (
-                            <option key={maestro.id} value={maestro.id}>
-                                {maestro.nombre} {maestro.apellido}
-                            </option>
+                <div className="flex flex-col gap-2">
+                    <label className="text-sm font-medium">Maestro Actual</label>
+                    {/* --- CORRECCIÓN AQUÍ --- */}
+                    <select {...register("maestro_actual_id")} className="p-2 border rounded-md" defaultValue={data?.maestro_actual_id ?? ''}>
+                        <option value="">Seleccionar Maestro</option>
+                        {relatedData?.maestros.map(maestro => (
+                            <option key={maestro.id} value={maestro.id}>{maestro.nombre} {maestro.apellido}</option>
                         ))}
                     </select>
-                </div> */}
+                </div>
+                <InputField label="Fecha de Evaluación" name="fecha_evaluacion" type="date" register={register("fecha_evaluacion")} error={errors.fecha_evaluacion} />
+                <div className="flex items-center gap-2">
+                    <input type="checkbox" {...register("recibio_evaluacion")} />
+                    <label>Recibió Evaluación</label>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                    <input type="checkbox" {...register("usa_medicamentos")} />
+                    <label>Usa Medicamentos</label>
+                </div>
+                <InputField label="Detalle de Medicamentos" name="medicamentos_detalle" type="textarea" register={register("medicamentos_detalle")} error={errors.medicamentos_detalle} />
+                <div className="flex items-center gap-2">
+                    <input type="checkbox" {...register("alergias")} />
+                    <label>Tiene Alergias</label>
+                </div>
+                <InputField label="Detalle de Alergias" name="alergias_detalle" type="textarea" register={register("alergias_detalle")} error={errors.alergias_detalle} />
+                <InputField label="Observaciones Médicas" name="observaciones_medicas" type="textarea" register={register("observaciones_medicas")} error={errors.observaciones_medicas} />
             </div>
-
-            <span className="text-xs text-gray-400 font-medium">
-                Información Médica
-            </span>
-            <div className="flex justify-between flex-wrap gap-4">
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        {...register("recibio_evaluacion")}
-                        defaultChecked={data?.recibio_evaluacion}
-                    />
-                    <label className="text-sm">Recibió Evaluación</label>
-                </div>
-                <InputField
-                    label="Fecha de Evaluación"
-                    name="fecha_evaluacion"
-                    defaultValue={data?.fecha_evaluacion ? new Date(data.fecha_evaluacion).toISOString().split("T")[0] : ""}
-                    register={register}
-                    error={errors.fecha_evaluacion}
-                    type="date"
-                />
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        {...register("usa_medicamentos")}
-                        defaultChecked={data?.usa_medicamentos}
-                    />
-                    <label className="text-sm">Usa Medicamentos</label>
-                </div>
-                <InputField
-                    label="Detalle de Medicamentos"
-                    name="medicamentos_detalle"
-                    defaultValue={data?.medicamentos_detalle}
-                    register={register}
-                    error={errors.medicamentos_detalle}
-                />
-                <div className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        {...register("alergias")}
-                        defaultChecked={data?.alergias}
-                    />
-                    <label className="text-sm">Tiene Alergias</label>
-                </div>
-                <InputField
-                    label="Detalle de Alergias"
-                    name="alergias_detalle"
-                    defaultValue={data?.alergias_detalle}
-                    register={register}
-                    error={errors.alergias_detalle}
-                />
-                <div className="w-full">
-                    <label className="text-xs text-gray-500">Observaciones Médicas</label>
-                    <textarea
-                        className="ring-[1.5px] ring-gray-300 p-2 rounded-md text-sm w-full"
-                        {...register("observaciones_medicas")}
-                        defaultValue={data?.observaciones_medicas}
-                        rows={3}
-                    />
-                </div>
-            </div>
-
-            {data && (
-                <InputField
-                    label="Id"
-                    name="id"
-                    defaultValue={data?.id}
-                    register={register}
-                    error={errors?.id}
-                    hidden
-                    type="number"
-                />
-            )}
-
-            {state.error && (
-                <span className="text-red-500">Algo salió mal!</span>
-            )}
-            <button
-                type="submit"
-                className="bg-blue-400 text-white p-2 rounded-md hover:bg-blue-500 transition-colors"
-            >
-                {type === "create" ? "Crear" : "Actualizar"}
-            </button>
-        </form>
+        </>
     );
 };
 
