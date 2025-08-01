@@ -29,13 +29,13 @@ const LoginPage = () => {
                 >
                     <h1 className="text-xl font-bold flex items-center gap-2">
                         <Image src="/logo.png" alt="" width={24} height={24} />
-                        SchooLama
+                        SIGEA
                     </h1>
                     <h2 className="text-gray-400">Sign in to your account</h2>
                     <Clerk.GlobalError className="text-sm text-red-400" />
                     <Clerk.Field name="identifier" className="flex flex-col gap-2">
                         <Clerk.Label className="text-xs text-gray-500">
-                            Username
+                            Usuario
                         </Clerk.Label>
                         <Clerk.Input
                             type="text"
@@ -46,7 +46,7 @@ const LoginPage = () => {
                     </Clerk.Field>
                     <Clerk.Field name="password" className="flex flex-col gap-2">
                         <Clerk.Label className="text-xs text-gray-500">
-                            Password
+                            Contraseña
                         </Clerk.Label>
                         <Clerk.Input
                             type="password"

@@ -14,11 +14,14 @@ services:
     build: .
     ports:
       - '3000:3000'
-    # --- CORRECCIÓN AQUÍ ---
-    # Le decimos que cargue las variables (incluida DATABASE_URL)
-    # directamente desde tu archivo .env
     env_file:
       - ./.env.docker
+    volumes:
+      # Sincroniza tu código con el contenedor
+      - .:/app
+      # --- CORRECCIÓN CLAVE ---
+      # Evita que tu carpeta node_modules local sobreescriba la del contenedor
+      - /app/node_modules
     depends_on:
       - postgres
 

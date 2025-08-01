@@ -4,9 +4,9 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { clerkClient } from "@clerk/nextjs/server";
+import { ActionState } from "@/lib/types"; // <-- Importa el tipo unificado
 
-// --- FUNCIÓN GENÉRICA PARA ELIMINAR ---
-async function deleteRecord(model: keyof typeof prisma, id: string, revalidationPath: string) {
+async function deleteRecord(model: keyof typeof prisma, id: string, revalidationPath: string): Promise<ActionState> {
   const numericId = parseInt(id);
   if (isNaN(numericId)) {
     return { success: false, error: true, message: "ID inválido." };
@@ -19,7 +19,7 @@ async function deleteRecord(model: keyof typeof prisma, id: string, revalidation
         try {
           await clerkClient.users.deleteUser(record.idusuario);
         } catch (clerkError: any) {
-          console.log("Usuario de Clerk no encontrado o ya eliminado:", clerkError.message);
+          console.log("Usuario de Clerk no encontrado:", clerkError.message);
         }
       }
     }
@@ -27,40 +27,15 @@ async function deleteRecord(model: keyof typeof prisma, id: string, revalidation
     await (prisma[model] as any).delete({ where: { id: numericId } });
 
     revalidatePath(revalidationPath);
-    return { success: true, error: false };
+    return { success: true, error: false, message: "Registro eliminado con éxito." };
   } catch (error) {
     console.error(`Error al eliminar en ${String(model)}:`, error);
-    return { success: false, error: true };
+    return { success: false, error: true, message: "Error del servidor al eliminar." };
   }
 }
 
-// --- ACCIONES ESPECIALIZADAS ---
-
-export const deleteAlumno = (currentState: any, data: FormData) => {
-  return deleteRecord("alumno", data.get("id") as string, "/lista/alumnos");
-};
-
-export const deletePadre = (currentState: any, data: FormData) => {
-  return deleteRecord("padre", data.get("id") as string, "/lista/padres");
-};
-
-export const deleteMaestro = (currentState: any, data: FormData) => {
-  return deleteRecord("maestro", data.get("id") as string, "/lista/maestros");
-};
-
-export const deleteEvento = (currentState: any, data: FormData) => {
-  return deleteRecord("eventos", data.get("id") as string, "/lista/eventos");
-};
-
-export const deleteMateria = (currentState: any, data: FormData) => {
-  const id = data.get("id") as string;
-  // El ID de Materia es un UUID (string), no un número, así que lo manejamos diferente.
-  try {
-    prisma.materia.delete({ where: { id } });
-    revalidatePath("/lista/trabajoSesiones");
-    return { success: true, error: false };
-  } catch(error) {
-    console.error(`Error al eliminar en materia:`, error);
-    return { success: false, error: true };
-  }
-};
+export const deleteAlumno = (currentState: ActionState, data: FormData) => deleteRecord("alumno", data.get("id") as string, "/lista/alumnos");
+export const deletePadre = (currentState: ActionState, data: FormData) => deleteRecord("padre", data.get("id") as string, "/lista/padres");
+export const deleteMaestro = (currentState: ActionState, data: FormData) => deleteRecord("maestro", data.get("id") as string, "/lista/maestros");
+export const deleteEvento = (currentState: ActionState, data: FormData) => deleteRecord("eventos", data.get("id") as string, "/lista/eventos");
+export const deleteMateria = (currentState: ActionState, data: FormData) => deleteRecord("materia", data.get("id") as string, "/lista/trabajoSesiones");

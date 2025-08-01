@@ -1,26 +1,20 @@
-# Use Node.js as the base image
+# Usa Node.js como la imagen base
 FROM node:18
 
-# Set the working directory inside the container
+# Establece el directorio de trabajo dentro del contenedor
 WORKDIR /app
 
-# Copy package.json and package-lock.json files
+# Copia package.json y package-lock.json
 COPY package*.json ./
 
-# Install dependencies
+# Instala las dependencias
 RUN npm install
 
-# Copy the rest of the application code
+# Copia el resto del código de la aplicación
 COPY . .
 
-# Generate Database
-
-
-# Build the Next.js application
-RUN npm run build
-
-# Expose the port the app runs on
+# Expone el puerto en el que corre la aplicación de Next.js
 EXPOSE 3000
 
-# Start the Next.js application
-CMD ["npm", "start"]
+# Comando para iniciar el servidor de desarrollo
+CMD ["npm", "run", "dev"]

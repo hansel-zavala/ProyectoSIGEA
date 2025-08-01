@@ -1,171 +1,96 @@
-import FormContainer from "@/components/FormContainer";
-import Pagination from "@/components/Paginacion";
-import Table from "@/components/Tabla";
-import TableSearch from "@/components/TableSearch";
+// src/app/(dashboard)/lista/padres/page.tsx
+
 import prisma from "@/lib/prisma";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { padre, Prisma } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
+import Link from "next/link";
+import FormModal from "@/components/FormModal"; // <-- 1. IMPORTA FormModal
+import TableSearch from "@/components/TableSearch";
+import Pagination from "@/components/Paginacion";
+import { ITEM_PER_PAGE } from "@/lib/settings";
 
-import { auth } from "@clerk/nextjs/server";
-
-type ListaPadre = padre
-
-const PaginaListaPadre = async ({
-    searchParams,
+const PadresPage = async ({
+  searchParams,
 }: {
-    searchParams: { [key: string]: string | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) => {
+  // Obtiene el usuario y el rol
+  const user = await currentUser();
+  const role = user?.publicMetadata?.role;
 
-    const { sessionClaims } = auth();
-    const role = (sessionClaims?.metadata as { role?: string })?.role;
+  const page = parseInt(searchParams?.page as string) || 1;
+  const search = (searchParams?.search as string) || "";
 
-    const columns = [
-        {
-            header: "Info",
-            accessor: "info",
-        },
-        {
-            header: "Telefono",
-            accessor: "telefono",
-            className: "hidden md:table-cell",
-        },
-        {
-            header: "Documento de ID",
-            accessor: "documentoId",
-            className: "hidden lg:table-cell",
-        },
-        {
-            header: "Estado",
-            accessor: "estado",
-            className: "hidden lg:table-cell",
-        },
-        ...(role === "admin"
-            ? [
-                {
-                    header: "Actions",
-                    accessor: "action",
-                },
-            ]
-            : []),
-    ];
+  // Lógica para buscar padres
+  const padres = await prisma.padre.findMany({
+    where: {
+      OR: [
+        { nombre: { contains: search, mode: "insensitive" } },
+        { apellido: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ],
+    },
+    take: ITEM_PER_PAGE,
+    skip: ITEM_PER_PAGE * (page - 1),
+  });
+  
+  const count = await prisma.padre.count({
+    where: {
+      OR: [
+        { nombre: { contains: search, mode: "insensitive" } },
+        { apellido: { contains: search, mode: "insensitive" } },
+        { email: { contains: search, mode: "insensitive" } },
+      ],
+    },
+  });
 
-    const renderRow = (item: ListaPadre) => (
-        <tr
-            key={item.id}
-            className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
-        >
-            {/* {Mostrar informacion general del padre} */}
-            <td className="flex items-center gap-4 p-4">
-                <div className="flex flex-col">
-                    <h3 className="font-semibold">{item.nombre} {item.apellido}</h3>
-                    {item.email && (
-                        <p className="text-xs text-gray-500">{item.email}</p>
-                    )}
-                    {/* {item.tipo_parentesco && (
-                        <p className="text-xs text-gray-400 capitalize">{item.tipoParentesco}</p>
-                    )} */}
-                </div>
-            </td>
-
-            {/* Mostar telefonos */}
-            <td className="hidden lg:table-cell">
-                <div className="flex flex-col gap-1 text-xs">
-                    <span className="font-medium">Telefono Movil: </span>
-                    <span>{item.telefono_movil}</span>
-                </div>
-            </td>
-            <td className="hidden lg:table-cell">
-                <div className="flex flex-col gap-1 text-xs">
-                    <span>{item.documento_identidad}</span>
-                </div>
-            </td>
-            <td className="hidden lg:table-cell">
-                <div className="flex flex-col gap-1 text-xs">
-                    <span>{item.activo === true ? "Activo" : "Inactivo"}</span>
-                </div>
-            </td>
-            <td>
-                <div className="flex items-center gap-2">
-                    {role === "admin" && (
-                        <>
-                            <FormContainer table="padre" type="update" data={item} />
-                            <FormContainer table="padre" type="delete" id={item.id} />
-                        </>
-                    )}
-                </div>
-            </td>
-        </tr>
-    );
-
-    const { page, ...queryParams } = searchParams;
-
-    const p = page ? parseInt(page) : 1;
-
-    // URL PARAMS CONDITION
-
-    const query: Prisma.padreWhereInput = {};
-
-    if (queryParams) {
-        for (const [key, value] of Object.entries(queryParams)) {
-            if (value !== undefined) {
-                switch (key) {
-                    case "search":
-                        query.OR = [
-                            { nombre: { contains: value } },
-                            { apellido: { contains: value } },
-                            { email: { contains: value } }
-                        ];
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    const [data, count] = await prisma.$transaction([
-        prisma.padre.findMany({
-            where: query,
-            // include: {
-            //     alumnoPadreRelaciones: {
-            //         include: {
-            //             alumno: true,
-            //         },
-            //     },
-            //     direccionCasa: true,    // Fixed: Include home address
-            //     direccionTrabajo: true, // Fixed: Include work address
-            // },
-            take: ITEM_PER_PAGE,
-            skip: ITEM_PER_PAGE * (p - 1),
-        }),
-        prisma.padre.count({ where: query }),
-    ]);
-
-    return (
-        <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-            {/* TOP */}
-            <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">Todos los padres</h1>
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <TableSearch />
-                    <div className="flex items-center gap-4 self-end">
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/filter.png" alt="" width={14} height={14} />
-                        </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/sort.png" alt="" width={14} height={14} />
-                        </button>
-                        {role === "admin" && <FormContainer table="padre" type="create" />}
-                    </div>
-                </div>
-            </div>
-            {/* LIST */}
-            <Table columns={columns} renderRow={renderRow} data={data} />
-            {/* PAGINATION */}
-            <Pagination page={p} count={count} />
+  return (
+    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">Lista de Padres y Tutores</h1>
+        <div className="flex items-center gap-4">
+          <TableSearch />
+          {role === "admin" && <FormModal table="padre" type="create" />}
         </div>
-    );
+      </div>
+      <table className="w-full text-sm text-left">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3">Nombre Completo</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
+            <th scope="col" className="px-6 py-3 hidden lg:table-cell">Teléfono</th>
+            <th scope="col" className="px-6 py-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {padres.map((item) => (
+            <tr key={item.id} className="bg-white border-b">
+              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                <div className="flex items-center gap-2">
+                  <Image src="/noavatar.png" alt="" width={32} height={32} className="rounded-full" />
+                  {item.nombre} {item.apellido}
+                </div>
+              </td>
+              <td className="px-6 py-4 hidden md:table-cell">{item.email}</td>
+              <td className="px-6 py-4 hidden lg:table-cell">{item.telefono_movil}</td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  {/* --- 2. CORRECCIÓN AQUÍ: Usa FormModal --- */}
+                  {role === "admin" && (
+                    <>
+                      <FormModal table="padre" type="update" data={item} />
+                      <FormModal table="padre" type="delete" id={item.id} />
+                    </>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <Pagination page={page} count={count} />
+    </div>
+  );
 };
 
-export default PaginaListaPadre;
+export default PadresPage;

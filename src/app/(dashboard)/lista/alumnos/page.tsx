@@ -1,169 +1,92 @@
-import FormContainer from "@/components/FormContainer";
-import Paginacion from "@/components/Paginacion";
-import Table from "@/components/Tabla";
-import TableSearch from "@/components/TableSearch";
+// src/app/(dashboard)/lista/alumnos/page.tsx
+
 import prisma from "@/lib/prisma";
-import { ITEM_PER_PAGE } from "@/lib/settings";
-import { Prisma, alumno } from "@prisma/client";
+import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
+import FormModal from "@/components/FormModal";
+import TableSearch from "@/components/TableSearch";
+import Pagination from "@/components/Paginacion";
+import { ITEM_PER_PAGE } from "@/lib/settings";
 
-import { auth } from "@clerk/nextjs/server";
-
-type ListaAlumno = alumno
-
-const ListaAlumnoPage = async ({
-    searchParams,
+const AlumnosPage = async ({
+  searchParams,
 }: {
-    searchParams: { [key: string]: string | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-    const { sessionClaims } = auth();
-    const role = (sessionClaims?.metadata as { role?: string })?.role;
+  // --- 1. OBTÉN EL USUARIO Y EL ROL AQUÍ ---
+  const user = await currentUser();
+  const role = user?.publicMetadata?.role;
 
-    const columns = [
-        {
-            header: "Info",
-            accessor: "info",
-        },
-        {
-            header: "Fecha de Nacimiento",
-            accessor: "fechadenacimiento",
-            className: "hidden md:table-cell",
-        },
-        {
-            header: "Genero",
-            accessor: "genero",
-            className: "hidden md:table-cell",
-        },
-        {
-            header: "Año de admision",
-            accessor: "añodeadmision",
-            className: "hidden lg:table-cell",
-        },
-        // {
-        //     header: "Direccion",
-        //     accessor: "direccion",
-        //     className: "hidden lg:table-cell",
-        // },
-        ...(role === "admin"
-            ? [
-                {
-                    header: "Actions",
-                    accessor: "action",
-                },
-            ]
-            : []),
-    ];
+  const page = parseInt(searchParams?.page as string) || 1;
+  const search = (searchParams?.search as string) || "";
 
-    const renderRow = (item: ListaAlumno) => (
-        <tr
-            key={item.id}
-            className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
-        >
-            <td className="flex items-center gap-4 p-4">
-                {/* <Image
-                    src={item.img || "/noAvatar.png"}
-                    alt=""
-                    width={40}
-                    height={40}
-                    className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
-                /> */}
-                <div className="flex flex-col">
-                    <h3 className="font-semibold">{item.nombre + ' ' + item.apellido}</h3>
-                </div>
-            </td>
-            <td className="hidden md:table-cell">
-                {new Date(item.fecha_de_nacimiento).toLocaleDateString()}
-            </td>
-            <td className="hidden md:table-cell">{item.genero}</td>
-            <td className="hidden md:table-cell center">{item.a_o_de_ingreso}</td>
-            {/* <td className="hidden md:table-cell">{item.direccion?.direccionCompleta}</td> */}
-            <td>
-                <div className="flex items-center gap-2">
-                    <Link href={`/lista/alumnos/${item.id}`}>
-                        <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaSky">
-                            <Image src="/view.png" alt="" width={16} height={16} />
-                        </button>
-                    </Link>
-                    {role === "admin" && (
-                        // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-                        //   <Image src="/delete.png" alt="" width={16} height={16} />
-                        // </button>
-                        <>
-                            <FormContainer table="alumno" type="update" data={item} />
-                            <FormContainer table="alumno" type="delete" id={item.id} />
-                        </>
-                    )}
-                </div>
-            </td>
-        </tr>
-    );
+  // Lógica para buscar alumnos
+  const alumnos = await prisma.alumno.findMany({
+    where: {
+      OR: [
+        { nombre: { contains: search, mode: "insensitive" } },
+        { apellido: { contains: search, mode: "insensitive" } },
+      ],
+    },
+    take: ITEM_PER_PAGE,
+    skip: ITEM_PER_PAGE * (page - 1),
+  });
+  
+  const count = await prisma.alumno.count({
+    where: {
+      OR: [
+        { nombre: { contains: search, mode: "insensitive" } },
+        { apellido: { contains: search, mode: "insensitive" } },
+      ],
+    },
+  });
 
-    const { page, ...queryParams } = searchParams;
-
-    const p = page ? parseInt(page) : 1;
-
-    // URL PARAMS CONDITION
-
-    const query: Prisma.alumnoWhereInput = {};
-
-    if (queryParams) {
-        for (const [key, value] of Object.entries(queryParams)) {
-            if (value !== undefined) {
-                switch (key) {
-                    case "search":
-                        query.OR = [
-                            { nombre: { contains: value } },
-                            { apellido: { contains: value } },
-                        ];
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-    }
-
-    const [data, count] = await prisma.$transaction([
-        prisma.alumno.findMany({
-            where: query,
-            take: ITEM_PER_PAGE,
-            skip: ITEM_PER_PAGE * (p - 1),
-        }),
-        prisma.alumno.count({ where: query }),
-    ]);
-
-    console.log()
-
-    return (
-        <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
-            {/* TOP */}
-            <div className="flex items-center justify-between">
-                <h1 className="hidden md:block text-lg font-semibold">Todos los Estudiantes</h1>
-                <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-                    <TableSearch />
-                    <div className="flex items-center gap-4 self-end">
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/filter.png" alt="" width={14} height={14} />
-                        </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            <Image src="/sort.png" alt="" width={14} height={14} />
-                        </button>
-                        {role === "admin" && (
-                            // <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-                            //   <Image src="/plus.png" alt="" width={14} height={14} />
-                            // </button>
-                            <FormContainer table="alumno" type="create" />
-                        )}
-                    </div>
-                </div>
-            </div>
-            {/* LIST */}
-            <Table columns={columns} renderRow={renderRow} data={data} />
-            {/* PAGINATION */}
-            <Paginacion page={p} count={count} />
+  return (
+    <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">Lista de Alumnos</h1>
+        <div className="flex items-center gap-4">
+          <TableSearch />
+          {role === "admin" && <FormModal table="alumno" type="create" />}
         </div>
-    );
+      </div>
+      <table className="w-full text-sm text-left">
+        <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+          <tr>
+            <th scope="col" className="px-6 py-3">Nombre Completo</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
+            <th scope="col" className="px-6 py-3">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {alumnos.map((item) => (
+            <tr key={item.id} className="bg-white border-b">
+              <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
+                <Link href={`/lista/alumnos/${item.id}`} className="flex items-center gap-2">
+                  <Image src="/noavatar.png" alt="" width={32} height={32} className="rounded-full" />
+                  {item.nombre} {item.apellido}
+                </Link>
+              </td>
+              <td className="px-6 py-4 hidden md:table-cell">{/* Asumiendo que el modelo alumno no tiene email */}</td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  {/* --- 2. AHORA 'role' SÍ EXISTE --- */}
+                  {role === "admin" && (
+                    <>
+                      <FormModal table="alumno" type="update" data={item} />
+                      <FormModal table="alumno" type="delete" id={item.id} />
+                    </>
+                  )}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+       <Pagination page={page} count={count} />
+    </div>
+  );
 };
 
-export default ListaAlumnoPage;
+export default AlumnosPage;

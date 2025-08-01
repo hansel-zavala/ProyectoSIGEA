@@ -1,5 +1,6 @@
 // src/components/forms/AlumnoForm.tsx
 "use client";
+
 import { useForm } from "react-hook-form";
 import { AlumnoSchema, AlumnoValidationSchema } from "@/lib/formValidationSchemas";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -17,19 +18,31 @@ type AlumnoFormProps = {
 };
 
 const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
+    
+    // --- CORRECCIÓN AQUÍ ---
+    // Preparamos los valores por defecto, convirtiendo null a undefined
+    const defaultValues = data ? {
+        ...data,
+        idusuario: data.idusuario ?? undefined,
+        documento_identidad: data.documento_identidad ?? undefined,
+        a_o_de_ingreso: data.a_o_de_ingreso ?? undefined,
+        estado: data.estado ?? undefined,
+        jornada_actual: data.jornada_actual ?? undefined,
+        fecha_evaluacion: data.fecha_evaluacion ? new Date(data.fecha_evaluacion).toISOString().split('T')[0] : undefined,
+        medicamentos_detalle: data.medicamentos_detalle ?? undefined,
+        alergias_detalle: data.alergias_detalle ?? undefined,
+        observaciones_medicas: data.observaciones_medicas ?? undefined,
+        maestro_actual_id: data.maestro_actual_id ?? undefined,
+        fecha_de_nacimiento: data.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split('T')[0] : undefined,
+    } : {};
+
+
     const {
         register,
-        handleSubmit,
         formState: { errors },
     } = useForm<AlumnoSchema>({
         resolver: zodResolver(AlumnoValidationSchema),
-        defaultValues: {
-            ...data,
-            // @ts-ignore
-            fecha_de_nacimiento: data?.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split('T')[0] : undefined,
-            // @ts-ignore
-            fecha_evaluacion: data?.fecha_evaluacion ? new Date(data.fecha_evaluacion).toISOString().split('T')[0] : undefined,
-        },
+        defaultValues: defaultValues, // Usamos los valores limpios
     });
 
     return (
@@ -41,7 +54,6 @@ const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
                 <InputField label="Fecha de Nacimiento" name="fecha_de_nacimiento" type="date" register={register("fecha_de_nacimiento")} error={errors.fecha_de_nacimiento} />
                 <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">Género</label>
-                    {/* --- CORRECCIÓN AQUÍ --- */}
                     <select {...register("genero")} className="p-2 border rounded-md" defaultValue={data?.genero ?? ''}>
                         {Object.values(genero).map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
@@ -52,25 +64,22 @@ const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
                 <InputField label="Año de Ingreso" name="a_o_de_ingreso" type="number" register={register("a_o_de_ingreso")} error={errors.a_o_de_ingreso} />
                 <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">Estado</label>
-                    {/* --- CORRECCIÓN AQUÍ (Línea 56) --- */}
                     <select {...register("estado")} className="p-2 border rounded-md" defaultValue={data?.estado ?? ''}>
                         {Object.values(alumno_estado).map(e => <option key={e} value={e}>{e}</option>)}
                     </select>
                 </div>
                 <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">Jornada Actual</label>
-                    {/* --- CORRECCIÓN AQUÍ --- */}
                     <select {...register("jornada_actual")} className="p-2 border rounded-md" defaultValue={data?.jornada_actual ?? ''}>
                         {Object.values(alumno_jornada_actual).map(j => <option key={j} value={j}>{j}</option>)}
                     </select>
                 </div>
                 <div className="flex flex-col gap-2">
                     <label className="text-sm font-medium">Maestro Actual</label>
-                    {/* --- CORRECCIÓN AQUÍ --- */}
                     <select {...register("maestro_actual_id")} className="p-2 border rounded-md" defaultValue={data?.maestro_actual_id ?? ''}>
                         <option value="">Seleccionar Maestro</option>
-                        {relatedData?.maestros.map(maestro => (
-                            <option key={maestro.id} value={maestro.id}>{maestro.nombre} {maestro.apellido}</option>
+                        {relatedData?.maestros.map(m => (
+                            <option key={m.id} value={m.id}>{m.nombre} {m.apellido}</option>
                         ))}
                     </select>
                 </div>
@@ -79,7 +88,6 @@ const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
                     <input type="checkbox" {...register("recibio_evaluacion")} />
                     <label>Recibió Evaluación</label>
                 </div>
-                
                 <div className="flex items-center gap-2">
                     <input type="checkbox" {...register("usa_medicamentos")} />
                     <label>Usa Medicamentos</label>
@@ -95,5 +103,4 @@ const AlumnoForm = ({ type, data, setOpen, relatedData }: AlumnoFormProps) => {
         </>
     );
 };
-
 export default AlumnoForm;
