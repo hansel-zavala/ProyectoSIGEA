@@ -56,6 +56,8 @@ const AlumnosPage = async ({
           <tr>
             <th scope="col" className="px-6 py-3">Nombre Completo</th>
             <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Padre</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Teléfono</th>
             <th scope="col" className="px-6 py-3">Acciones</th>
           </tr>
         </thead>
@@ -69,6 +71,8 @@ const AlumnosPage = async ({
                 </Link>
               </td>
               <td className="px-6 py-4 hidden md:table-cell">{/* Asumiendo que el modelo alumno no tiene email */}</td>
+              <td className="px-6 py-4 hidden md:table-cell"></td>
+              <td className="px-6 py-4 hidden md:table-cell"></td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   {/* --- 2. AHORA 'role' SÍ EXISTE --- */}

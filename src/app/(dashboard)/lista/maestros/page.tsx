@@ -47,7 +47,7 @@ const MaestrosPage = async ({
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">Lista de Maestros</h1>
+        <h1 className="text-xl font-semibold">Lista de Licenciados</h1>
         <div className="flex items-center gap-4">
           <TableSearch />
           {role === "admin" && <FormModal table="maestro" type="create" />}
@@ -59,6 +59,8 @@ const MaestrosPage = async ({
             <th scope="col" className="px-6 py-3">Nombre Completo</th>
             <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
             <th scope="col" className="px-6 py-3 hidden lg:table-cell">Teléfono</th>
+            <th scope="col" className="px-6 py-3 hidden lg:table-cell">Puesto</th>
+            <th scope="col" className="px-6 py-3 hidden lg:table-cell">Estado</th>
             <th scope="col" className="px-6 py-3">Acciones</th>
           </tr>
         </thead>
@@ -73,6 +75,8 @@ const MaestrosPage = async ({
               </td>
               <td className="px-6 py-4 hidden md:table-cell">{item.email}</td>
               <td className="px-6 py-4 hidden lg:table-cell">{item.telefono_movil}</td>
+              <td className="px-6 py-4 hidden lg:table-cell">{item.tipo_profesional}</td>
+              <td className="px-6 py-4 hidden lg:table-cell">{item.estado}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
                   {/* --- 2. CORRECCIÓN AQUÍ: Usa FormModal --- */}

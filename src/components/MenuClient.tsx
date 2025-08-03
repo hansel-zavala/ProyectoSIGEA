@@ -9,6 +9,10 @@ import {
   User,
   Settings,
   LogOut,
+  UsersRound,
+  ClipboardMinus,
+  BookType,
+  Archive,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,13 +32,7 @@ const MenuClient = ({ role }: MenuClientProps) => {
       icon: <Home />,
     },
     {
-      title: "Registrar Nuevo Alumno",
-      path: "/lista/registrar",
-      icon: <UserPlus />,
-      roles: ["admin", "teacher"],
-    },
-    {
-      title: "Maestros",
+      title: "Licenciados",
       path: "/lista/maestros",
       icon: <Users />,
       roles: ["admin"],
@@ -52,6 +50,30 @@ const MenuClient = ({ role }: MenuClientProps) => {
       roles: ["admin", "teacher"],
     },
     {
+      title: "Matrículas",
+      path: "/lista/registrar",
+      icon: <UserPlus />,
+      roles: ["admin", "teacher"],
+    },
+    {
+      title: "Reportes",
+      path: "/lista/",
+      icon: <ClipboardMinus />,
+      roles: ["admin", "teacher"],
+    },
+    {
+      title: "Lecciones",
+      path: "/lista/",
+      icon: <BookType />,
+      roles: ["admin", "teacher"],
+    },
+    {
+      title: "Archivos",
+      path: "/lista/",
+      icon: <Archive />,
+      roles: ["admin", "teacher"],
+    },
+    {
       title: "Eventos",
       path: "/lista/eventos",
       icon: <CalendarDays />,
@@ -61,17 +83,17 @@ const MenuClient = ({ role }: MenuClientProps) => {
 
   const otherItems = [
     {
-      title: "Profile",
+      title: "Perfil",
       path: "/profile",
       icon: <User />,
     },
     {
-      title: "Settings",
+      title: "Configuración",
       path: "/settings",
       icon: <Settings />,
     },
     {
-      title: "Logout",
+      title: "Cerrar Sesión",
       path: "/logout",
       icon: <LogOut />,
     },
@@ -85,7 +107,7 @@ const MenuClient = ({ role }: MenuClientProps) => {
   return (
     <div className="flex flex-col justify-between h-full">
       <div>
-        <h2 className="text-xs text-gray-400 mb-4">MENU</h2>
+        <h2 className="text-xs text-gray-400 mb-4">APO-AUTIS</h2>
         {menuItems.map(
           (item) =>
             hasAccess(item.roles) && (
@@ -103,7 +125,7 @@ const MenuClient = ({ role }: MenuClientProps) => {
         )}
       </div>
       <div>
-        <h2 className="text-xs text-gray-400 my-4">OTHER</h2>
+        <h2 className="text-xs text-gray-400 my-4"> </h2>
         {otherItems.map((item) => (
           <Link
             href={item.path}
