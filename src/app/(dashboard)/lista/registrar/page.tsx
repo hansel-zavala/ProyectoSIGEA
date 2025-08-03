@@ -14,7 +14,7 @@ const RegistrarAlumnoPage = async () => {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-bold mb-6">Registrar Nuevo Alumno</h1>
+      <h1 className="text-2xl font-bold mb-6">Matrículas</h1>
       
       {/* 2. Renderizamos nuestro nuevo componente de cliente y le pasamos los datos */}
       <RegistrarAlumnoForm relatedData={relatedData} />

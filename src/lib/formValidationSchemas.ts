@@ -13,25 +13,44 @@ import {
 // --- ESQUEMA DE VALIDACIÓN PARA ALUMNO ---
 export const AlumnoValidationSchema = z.object({
   id: z.number().optional(),
-  idusuario: z.string().max(100).optional().nullable(),
-  nombre: z.string().min(1, "El nombre es obligatorio").max(50),
-  apellido: z.string().min(1, "El apellido es obligatorio").max(50),
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  apellido: z.string().min(1, "El apellido es obligatorio"),
   fecha_de_nacimiento: z.coerce.date(),
-  genero: z.nativeEnum(genero), // <-- CORRECCIÓN CLAVE
-  documento_identidad: z.string().max(20).optional().nullable(),
-  lugar_de_nacimiento: z.string().min(1, "El lugar de nacimiento es obligatorio").max(150),
-  institucion_procedencia: z.string().min(1, "La institución es obligatoria").max(100),
-  a_o_de_ingreso: z.coerce.number().optional().nullable(),
-  estado: z.nativeEnum(alumno_estado).optional(), // <-- CORRECCIÓN CLAVE
-  jornada_actual: z.nativeEnum(alumno_jornada_actual).optional(), // <-- CORRECCIÓN CLAVE
+  lugar_de_nacimiento: z.string().min(1, "El lugar de nacimiento es obligatorio"),
+  
+  // --- NUEVOS CAMPOS Y REGLAS DE VALIDACIÓN ---
+  direccion: z.string().optional().nullable(),
+  telefono_fijo: z.string().regex(/^[0-9]*$/, "Solo se permiten números").optional().nullable(),
+  telefono_movil: z.string().regex(/^[0-9]*$/, "Solo se permiten números").optional().nullable(),
+  documento_identidad: z.string().regex(/^[0-9]*$/, "Solo se permiten números").optional().nullable(),
+  
+  institucion_procedencia: z.string().min(1, "La institución es obligatoria"),
+  jornada_actual: z.nativeEnum(alumno_jornada_actual).optional(),
   recibio_evaluacion: z.boolean().optional(),
-  fecha_evaluacion: z.coerce.date().optional().nullable(),
+  
+  // Tipos de atención
+  atencion_grupal: z.boolean().optional(),
+  atencion_individual: z.boolean().optional(),
+  atencion_distancia: z.boolean().optional(),
+  atencion_pre_vocacional: z.boolean().optional(),
+  atencion_vocacional: z.boolean().optional(),
+  terapia_domicilio: z.boolean().optional(),
+  inclusion_escolar: z.boolean().optional(),
+  educacion_fisica: z.boolean().optional(),
+
+  // Información Médica
   usa_medicamentos: z.boolean().optional(),
   medicamentos_detalle: z.string().optional().nullable(),
   alergias: z.boolean().optional(),
   alergias_detalle: z.string().optional().nullable(),
   observaciones_medicas: z.string().optional().nullable(),
+  
+  // Otros campos (se mantienen por consistencia del tipo)
+  genero: z.nativeEnum(genero),
+  estado: z.nativeEnum(alumno_estado).optional(),
+  fecha_evaluacion: z.coerce.date().optional().nullable(),
   maestro_actual_id: z.coerce.number().optional().nullable(),
+  padreId: z.number().optional().nullable(),
 });
 
 export type AlumnoSchema = z.infer<typeof AlumnoValidationSchema>;

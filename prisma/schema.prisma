@@ -18,30 +18,53 @@ model admin {
 }
 
 model alumno {
-  id                      Int      @id @default(autoincrement())
-  idusuario               String?  @unique(map: "alumno_idusuario_unique") @db.VarChar(100)
-  nombre                  String   @db.VarChar(50)
-  apellido                String   @db.VarChar(50)
-  fecha_de_nacimiento     DateTime @db.Date
+  id                      Int                    @id @default(autoincrement())
+  idusuario               String?                @unique
+  nombre                  String
+  apellido                String
+  fecha_de_nacimiento     DateTime               @db.Date
   genero                  genero
-  documento_identidad     String?  @db.VarChar(20)
-  lugar_de_nacimiento     String   @db.VarChar(150)
-  institucion_procedencia String   @db.VarChar(100)
-  a_o_de_ingreso          Int?     @map("año_de_ingreso") @db.Integer // CORREGIDO: Year -> Integer
-  estado                  alumno_estado?       @default(activo)
+  documento_identidad     String?
+  lugar_de_nacimiento     String
+  institucion_procedencia String
+  estado                  alumno_estado?         @default(activo)
   jornada_actual          alumno_jornada_actual? @default(matutina)
-  recibio_evaluacion      Boolean? @default(false)
-  fecha_evaluacion        DateTime? @db.Date
-  usa_medicamentos        Boolean? @default(false)
-  medicamentos_detalle    String?  @db.Text
-  alergias                Boolean? @default(false)
-  alergias_detalle        String?  @db.Text
-  observaciones_medicas   String?  @db.Text
+  recibio_evaluacion      Boolean?               @default(false)
+  fecha_evaluacion        DateTime?              @db.Date
+  usa_medicamentos        Boolean?               @default(false)
+  medicamentos_detalle    String?
+  alergias                Boolean?               @default(false)
+  alergias_detalle        String?
+  observaciones_medicas   String?
+  
+  // --- NUEVOS CAMPOS DE LA MATRÍCULA ---
+  direccion               String?
+  telefono_fijo           String?
+  telefono_movil          String?
+  
+  // Tipos de atención
+  atencion_grupal         Boolean?               @default(false)
+  atencion_individual     Boolean?               @default(false)
+  atencion_distancia      Boolean?               @default(false)
+  atencion_pre_vocacional Boolean?               @default(false)
+  atencion_vocacional     Boolean?               @default(false)
+  terapia_domicilio       Boolean?               @default(false)
+  inclusion_escolar       Boolean?               @default(false)
+  educacion_fisica        Boolean?               @default(false)
+
+  fecha_creacion          DateTime               @default(now())
+  fecha_actualizacion     DateTime               @updatedAt
+
   maestro_actual_id       Int?
-  fecha_creacion          DateTime @default(now()) @db.Timestamp(0)
-  fecha_actualizacion     DateTime @default(now()) @db.Timestamp(0)
-  materias                Materia[] // Relación con Materia
-  asistencias attendance[]
+  maestro_actual          maestro?               @relation(fields: [maestro_actual_id], references: [id])
+
+  // --- RELACIÓN CON PADRE ---
+  padreId                 Int?
+  padre                   padre?                 @relation(fields: [padreId], references: [id])
+  
+  // Otras relaciones existentes
+  materias                Materia[]
+  asistencias             attendance[]
 }
 
 model eventos {
@@ -77,6 +100,7 @@ model maestro {
   fecha_creacion        DateTime @default(now()) @db.Timestamp(0)
   fecha_actualizacion   DateTime @default(now()) @db.Timestamp(0)
   materias              Materia[] // CORREGIDO: Relación inversa con Materia
+  alumnos_asignados   alumno[]
 }
 
 model padre {
@@ -93,6 +117,7 @@ model padre {
   activo                Boolean? @default(true)
   fecha_creacion        DateTime @default(now()) @db.Timestamp(0)
   fecha_actualizacion   DateTime @default(now()) @db.Timestamp(0)
+  alumnos alumno[]
 }
 
 // NUEVO MODELO

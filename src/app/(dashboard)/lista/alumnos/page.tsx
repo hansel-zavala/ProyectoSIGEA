@@ -8,13 +8,13 @@ import FormModal from "@/components/FormModal";
 import TableSearch from "@/components/TableSearch";
 import Pagination from "@/components/Paginacion";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+import { alumno } from "@prisma/client";
 
 const AlumnosPage = async ({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  // --- 1. OBTÉN EL USUARIO Y EL ROL AQUÍ ---
   const user = await currentUser();
   const role = user?.publicMetadata?.role;
 
@@ -55,14 +55,12 @@ const AlumnosPage = async ({
         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3">Nombre Completo</th>
-            <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
-            <th scope="col" className="px-6 py-3 hidden md:table-cell">Padre</th>
-            <th scope="col" className="px-6 py-3 hidden md:table-cell">Teléfono</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">ID de Usuario</th>
             <th scope="col" className="px-6 py-3">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {alumnos.map((item) => (
+          {alumnos.map((item: alumno) => (
             <tr key={item.id} className="bg-white border-b">
               <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                 <Link href={`/lista/alumnos/${item.id}`} className="flex items-center gap-2">
@@ -70,12 +68,9 @@ const AlumnosPage = async ({
                   {item.nombre} {item.apellido}
                 </Link>
               </td>
-              <td className="px-6 py-4 hidden md:table-cell">{/* Asumiendo que el modelo alumno no tiene email */}</td>
-              <td className="px-6 py-4 hidden md:table-cell"></td>
-              <td className="px-6 py-4 hidden md:table-cell"></td>
+              <td className="px-6 py-4 hidden md:table-cell">{item.idusuario}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  {/* --- 2. AHORA 'role' SÍ EXISTE --- */}
                   {role === "admin" && (
                     <>
                       <FormModal table="alumno" type="update" data={item} />
