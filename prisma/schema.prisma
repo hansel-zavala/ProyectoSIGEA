@@ -1,3 +1,4 @@
+// prisma/schema.prisma
 
 generator client {
   provider      = "prisma-client-js"
@@ -10,11 +11,52 @@ datasource db {
 }
 
 model admin {
-  id                  Int      @id @default(autoincrement())
-  idusuario           String   @unique(map: "admin_idusuario_unique") @db.VarChar(100)
+  id                  Int          @id @default(autoincrement())
+  idusuario           String       @unique
   estado              admin_estado? @default(activo)
-  fecha_creacion      DateTime @default(now()) @db.Timestamp(0)
-  fecha_actualizacion DateTime @default(now()) @db.Timestamp(0)
+  fecha_creacion      DateTime     @default(now())
+  fecha_actualizacion DateTime     @updatedAt // <-- CORRECCIÓN
+}
+
+model maestro {
+  id                  Int                       @id @default(autoincrement())
+  idusuario           String?                   @unique
+  nombre              String
+  apellido            String
+  documento_identidad String                    @unique
+  fecha_de_nacimiento DateTime?
+  genero              genero?
+  telefono_movil      String
+  email               String                    @unique
+  tipo_profesional    maestros_tipo_profesional
+  estado              maestros_estado?          @default(activo)
+  fecha_ingreso       DateTime?
+  fecha_creacion      DateTime                  @default(now())
+  fecha_actualizacion DateTime                  @updatedAt // <-- CORRECCIÓN
+  materias            Materia[]
+  alumnosAsignados    alumno[]                  @relation("TerapeutaPrincipal")
+  reportesGenerados   Reporte[]
+}
+
+model padre {
+  id                  Int                   @id @default(autoincrement())
+  idusuario           String?               @unique
+  nombre              String
+  apellido            String
+  documento_identidad String?
+  tipo_parentesco     padre_tipo_parentesco
+  direccion           String?
+  profesion           String?
+  lugar_trabajo       String?
+  telefono_fijo       String?
+  telefono_movil      String?
+  email               String?
+  fecha_de_nacimiento DateTime?
+  genero              genero?
+  activo              Boolean?              @default(true)
+  fecha_creacion      DateTime              @default(now())
+  fecha_actualizacion DateTime              @updatedAt // <-- CORRECCIÓN
+  alumnos             alumno[]
 }
 
 model alumno {
@@ -22,27 +64,13 @@ model alumno {
   idusuario               String?                @unique
   nombre                  String
   apellido                String
-  fecha_de_nacimiento     DateTime               @db.Date
-  genero                  genero
-  documento_identidad     String?
   lugar_de_nacimiento     String
-  institucion_procedencia String
-  estado                  alumno_estado?         @default(activo)
-  jornada_actual          alumno_jornada_actual? @default(matutina)
-  recibio_evaluacion      Boolean?               @default(false)
-  fecha_evaluacion        DateTime?              @db.Date
-  usa_medicamentos        Boolean?               @default(false)
-  medicamentos_detalle    String?
-  alergias                Boolean?               @default(false)
-  alergias_detalle        String?
-  observaciones_medicas   String?
-  
-  // --- NUEVOS CAMPOS DE LA MATRÍCULA ---
+  fecha_de_nacimiento     DateTime
   direccion               String?
   telefono_fijo           String?
   telefono_movil          String?
-  
-  // Tipos de atención
+  institucion_procedencia String
+  recibio_evaluacion      Boolean?               @default(false)
   atencion_grupal         Boolean?               @default(false)
   atencion_individual     Boolean?               @default(false)
   atencion_distancia      Boolean?               @default(false)
@@ -51,157 +79,146 @@ model alumno {
   terapia_domicilio       Boolean?               @default(false)
   inclusion_escolar       Boolean?               @default(false)
   educacion_fisica        Boolean?               @default(false)
-
+  usa_medicamentos        Boolean?               @default(false)
+  medicamentos_detalle    String?
+  alergias                Boolean?               @default(false)
+  alergias_detalle        String?
+  observaciones_medicas   String?
+  genero                  genero
+  documento_identidad     String?
+  estado                  alumno_estado?         @default(activo)
+  jornada_actual          alumno_jornada_actual? @default(matutina)
+  fecha_evaluacion        DateTime?
   fecha_creacion          DateTime               @default(now())
-  fecha_actualizacion     DateTime               @updatedAt
-
-  maestro_actual_id       Int?
-  maestro_actual          maestro?               @relation(fields: [maestro_actual_id], references: [id])
-
-  // --- RELACIÓN CON PADRE ---
+  fecha_actualizacion     DateTime               @updatedAt // <-- CORRECCIÓN
   padreId                 Int?
   padre                   padre?                 @relation(fields: [padreId], references: [id])
-  
-  // Otras relaciones existentes
+  terapeutaPrincipalId    Int?
+  terapeutaPrincipal      maestro?               @relation("TerapeutaPrincipal", fields: [terapeutaPrincipalId], references: [id])
   materias                Materia[]
   asistencias             attendance[]
+  reportes                Reporte[]
 }
 
 model eventos {
-  id                        Int      @id @default(autoincrement())
-  titulo                    String   @db.VarChar(200)
-  descripcion               String?  @db.Text
-  tipo_evento               eventos_tipo_evento
-  fecha_inicio              DateTime @db.Timestamp(0) // CORREGIDO: DateTime -> Timestamp
-  fecha_fin                 DateTime @db.Timestamp(0) // CORREGIDO: DateTime -> Timestamp
-  lugar                     String?  @db.VarChar(200)
-  estado                    eventos_estado? @default(planificado)
-  es_publico                Boolean? @default(true)
-  observaciones             String?  @db.Text
-  creado_por_admin_id       Int?
-  actualizado_por_admin_id  Int?
-  fecha_creacion            DateTime @default(now()) @db.Timestamp(0)
-  fecha_actualizacion       DateTime @default(now()) @db.Timestamp(0)
+  id                       Int                 @id @default(autoincrement())
+  titulo                   String
+  descripcion              String?
+  tipo_evento              eventos_tipo_evento
+  fecha_inicio             DateTime
+  fecha_fin                DateTime
+  lugar                    String?
+  estado                   eventos_estado?     @default(planificado)
+  es_publico               Boolean?            @default(true)
+  observaciones            String?
+  creado_por_admin_id      Int?
+  actualizado_por_admin_id Int?
+  fecha_creacion           DateTime            @default(now())
+  fecha_actualizacion      DateTime            @updatedAt // <-- CORRECCIÓN
 }
 
-model maestro {
-  id                    Int      @id @default(autoincrement())
-  idusuario             String?  @unique(map: "maestro_idusuario_unique") @db.VarChar(100)
-  nombre                String   @db.VarChar(50)
-  apellido              String   @db.VarChar(50)
-  documento_identidad   String   @unique(map: "maestro_documento_identidad_unique") @db.VarChar(20)
-  fecha_de_nacimiento   DateTime? @db.Date
-  genero                String?  @db.VarChar(10)
-  telefono_movil        String   @db.VarChar(20)
-  email                 String   @unique(map: "maestro_email_unique") @db.VarChar(100)
-  tipo_profesional      maestros_tipo_profesional
-  estado                maestros_estado? @default(activo)
-  fecha_ingreso         DateTime? @db.Date
-  fecha_creacion        DateTime @default(now()) @db.Timestamp(0)
-  fecha_actualizacion   DateTime @default(now()) @db.Timestamp(0)
-  materias              Materia[] // CORREGIDO: Relación inversa con Materia
-  alumnos_asignados   alumno[]
-}
-
-model padre {
-  id                    Int      @id @default(autoincrement())
-  idusuario             String?  @unique(map: "padre_idusuario_unique") @db.VarChar(100)
-  nombre                String   @db.VarChar(50)
-  apellido              String   @db.VarChar(50)
-  documento_identidad   String?  @db.VarChar(20)
-  tipo_parentesco       padre_tipo_parentesco
-  fecha_de_nacimiento   DateTime? @db.Date
-  genero                String?  @db.VarChar(10)
-  telefono_movil        String?  @db.VarChar(20)
-  email                 String?  @db.VarChar(100)
-  activo                Boolean? @default(true)
-  fecha_creacion        DateTime @default(now()) @db.Timestamp(0)
-  fecha_actualizacion   DateTime @default(now()) @db.Timestamp(0)
-  alumnos alumno[]
-}
-
-// NUEVO MODELO
 model Materia {
   id          String   @id @default(uuid())
   nombre      String
   descripcion String?
-  maestroId   Int
-  maestro     maestro  @relation(fields: [maestroId], references: [id])
-  alumnos     alumno[]
+
+  maestroId Int
+  maestro   maestro @relation(fields: [maestroId], references: [id])
+
+  alumnos alumno[]
 
   @@map("materias")
 }
-// AÑADE ESTE NUEVO MODELO AL FINAL DE TU SCHEMA.PRISMA
 
 model attendance {
-  id        Int      @id @default(autoincrement())
-  date      DateTime @db.Date
-  present   Boolean  // Es mejor usar Boolean (true/false) para la asistencia
+  id      Int      @id @default(autoincrement())
+  date    DateTime
+  present Boolean
   
-  // --- RELACIÓN CON ALUMNO (AÑADIR ESTO) ---
-  alumnoId  Int
-  alumno    alumno   @relation(fields: [alumnoId], references: [id])
+  alumnoId Int
+  alumno   alumno  @relation(fields: [alumnoId], references: [id])
 
   @@map("asistencias")
 }
 
+model Reporte {
+  id                  Int           @id @default(autoincrement())
+  fecha_entrega       DateTime      @default(now())
+  resumen             String?
+  conclusiones        String?
+  recomendaciones     String?
+  alumnoId            Int
+  alumno              alumno        @relation(fields: [alumnoId], references: [id])
+  licenciadoId        Int
+  licenciado          maestro       @relation(fields: [licenciadoId], references: [id])
+  itemsDeEvaluacion   ReporteItem[]
+  fecha_creacion      DateTime      @default(now())
+  fecha_actualizacion DateTime      @updatedAt
+
+  @@map("reportes")
+}
+
+model ReporteItem {
+  id          Int     @id @default(autoincrement())
+  area        String
+  actividad   String
+  valoracion  String
+  
+  reporteId   Int
+  reporte     Reporte @relation(fields: [reporteId], references: [id])
+
+  @@map("reporte_items")
+}
+
 // --- ENUMS ---
-enum admin_estado {
-  activo
-  inactivo
-  suspendido
+enum admin_estado { 
+  activo 
+  inactivo 
+  suspendido 
 }
 
-enum genero {
-  masculino
-  femenino
+enum genero { 
+  masculino 
+  femenino 
 }
-
-enum eventos_tipo_evento {
-  reunion_padres
-  capacitacion_maestros
-  evaluacion_grupal
-  actividad_recreativa
-  conferencia
-  taller
-  otro
+enum eventos_tipo_evento { 
+  reunion_padres 
+  capacitacion_maestros 
+  evaluacion_grupal 
+  actividad_recreativa 
+  conferencia 
+  taller 
+  otro 
 }
-
-enum padre_tipo_parentesco {
-  madre
-  padre
-  tutor
-  guardian
+enum padre_tipo_parentesco { 
+  madre 
+  padre 
+  tutor 
 }
-
-enum eventos_estado {
-  planificado
-  confirmado
-  en_progreso
-  completado
-  cancelado
+enum eventos_estado { 
+  planificado 
+  confirmado 
+  en_progreso 
+  completado 
+  cancelado 
 }
-
-enum maestros_tipo_profesional {
-  psicologo
-  terapeuta
-  ambos
+enum maestros_tipo_profesional { 
+  psicologo 
+  terapeuta 
+  ambos 
 }
-
-enum alumno_estado {
-  activo
-  inactivo
-  graduado
-  retirado
+enum alumno_estado { 
+  activo 
+  inactivo 
+  graduado 
+  retirado 
 }
-
-enum maestros_estado {
-  activo
-  inactivo
-  vacaciones
+enum maestros_estado { 
+  activo 
+  inactivo 
+  vacaciones 
 }
-
-enum alumno_jornada_actual {
-  matutina
-  vespertina
+enum alumno_jornada_actual { 
+  matutina 
+  vespertina 
 }

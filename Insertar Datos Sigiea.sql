@@ -1,24 +1,65 @@
--- Datos para la tabla admin
-INSERT INTO admin (idusuario, estado) VALUES
-('admin001', 'activo'),
-('admin002', 'inactivo');
+-- BORRA LOS DATOS ANTIGUOS EN EL ORDEN CORRECTO PARA EVITAR ERRORES DE RELACIÓN
+DELETE FROM "reporte_items";
+DELETE FROM "reportes";
+DELETE FROM "asistencias";
+DELETE FROM "_MateriaToalumno";
+DELETE FROM "materias";
+DELETE FROM "alumno";
+DELETE FROM "padre";
+DELETE FROM "maestro";
+DELETE FROM "admin";
+DELETE FROM "eventos";
 
--- Datos para la tabla maestro
-INSERT INTO maestro (idusuario, nombre, apellido, documento_identidad, fecha_de_nacimiento, genero, telefono_movil, email, tipo_profesional, estado, fecha_ingreso) VALUES
-('teacher001', 'Carlos', 'Lopez', '123456789', '1980-05-15', 'masculino', '555-1234', 'carlos.lopez@example.com', 'psicologo', 'activo', '2020-01-10'),
-('teacher002', 'Ana', 'Martinez', '987654321', '1985-08-22', 'femenino', '555-5678', 'ana.martinez@example.com', 'terapeuta', 'activo', '2021-03-15');
 
--- Datos para la tabla padre
-INSERT INTO padre (idusuario, nombre, apellido, documento_identidad, tipo_parentesco, fecha_de_nacimiento, genero, telefono_movil, email, activo) VALUES
-('parent001', 'Maria', 'Gomez', '112233445', 'madre', '1982-11-30', 'femenino', '555-8765', 'maria.gomez@example.com', true),
-('parent002', 'Juan', 'Rodriguez', '556677889', 'padre', '1980-02-20', 'masculino', '555-4321', 'juan.rodriguez@example.com', true);
+-- INSERTA DATOS NUEVOS CON IDs Y FECHAS EXPLÍCITAS
 
--- Datos para la tabla alumno
-INSERT INTO alumno (idusuario, nombre, apellido, fecha_de_nacimiento, genero, documento_identidad, lugar_de_nacimiento, institucion_procedencia, "año_de_ingreso", estado, jornada_actual, recibio_evaluacion, usa_medicamentos, alergias, maestro_actual_id) VALUES
-('student001', 'Luis', 'Gomez', '2010-01-01', 'masculino', '123123123', 'Ciudad Ejemplo', 'Escuela Anterior', 2022, 'activo', 'matutina', false, false, false, 1),
-('student002', 'Sofia', 'Rodriguez', '2011-02-02', 'femenino', '456456456', 'Ciudad Ejemplo', 'Otra Escuela', 2023, 'activo', 'vespertina', false, false, false, 2);
+-- Tabla: admin
+-- Usamos 'NOW()' para que la base de datos inserte la fecha y hora actual.
+INSERT INTO "admin" ("id", "idusuario", "estado", "fecha_creacion", "fecha_actualizacion") VALUES
+(1, 'admin001', 'activo', NOW(), NOW()),
+(2, 'admin002', 'inactivo', NOW(), NOW());
 
--- Datos para la tabla eventos
-INSERT INTO eventos (titulo, descripcion, tipo_evento, fecha_inicio, fecha_fin, lugar, estado, es_publico) VALUES
-('Reunión de Padres', 'Reunión trimestral de padres y maestros.', 'reunion_padres', '2024-08-15 18:00:00', '2024-08-15 20:00:00', 'Salón Principal', 'planificado', true),
-('Capacitación Docente', 'Capacitación sobre nuevas metodologías.', 'capacitacion_maestros', '2024-09-01 09:00:00', '2024-09-01 17:00:00', 'Auditorio', 'confirmado', false);
+-- Tabla: maestro (Licenciados)
+-- Definimos explícitamente los IDs para que las relaciones funcionen.
+INSERT INTO "maestro" ("id", "nombre", "apellido", "documento_identidad", "email", "telefono_movil", "tipo_profesional", "fecha_creacion", "fecha_actualizacion") VALUES
+(1, 'Fabián', 'Jiménez', '0101-1980-00123', 'fabian.jimenez@example.com', '99887766', 'psicologo', NOW(), NOW()),
+(2, 'Nora', 'Mendoza', '0102-1985-00456', 'nora.mendoza@example.com', '98765432', 'terapeuta', NOW(), NOW());
+
+-- Tabla: padre
+INSERT INTO "padre" ("id", "nombre", "apellido", "tipo_parentesco", "direccion", "telefono_movil", "fecha_creacion", "fecha_actualizacion") VALUES
+(1, 'Rocío', 'Guerrero', 'madre', 'Col. El Sauce, Casa 10', '95258906', NOW(), NOW()),
+(2, 'Milton', 'Puerto', 'padre', 'Col. El Sauce, Casa 10', '99567213', NOW(), NOW());
+
+-- Tabla: alumno (Matrículas)
+INSERT INTO "alumno" (
+    "id", "nombre", "apellido", "fecha_de_nacimiento", "lugar_de_nacimiento", "genero", "institucion_procedencia",
+    "direccion", "telefono_fijo", "telefono_movil", "padreId", "terapeutaPrincipalId", "fecha_creacion", "fecha_actualizacion"
+) VALUES
+(
+    1, 'Hamilton Johan', 'Puerto Guerrero', '2017-09-28', 'La Ceiba, Atlántida', 'masculino', 'Ninguna',
+    'Col. El Sauce, Casa 10', '2440-1234', '95258906', 1, 1, NOW(), NOW()
+);
+
+-- Tabla: materias (Lecciones/Clases)
+INSERT INTO "materias" ("id", "nombre", "descripcion", "maestroId", "fecha_creacion", "fecha_actualizacion") VALUES
+('uuid-materia-1', 'Terapia Sensorial', 'Actividades para estimular los sentidos.', 2, NOW(), NOW()),
+('uuid-materia-2', 'Comunicación y Lenguaje', 'Ejercicios para mejorar la comunicación verbal.', 1, NOW(), NOW());
+
+-- Tabla de unión para la relación Materia-Alumno
+INSERT INTO "_MateriaToalumno" ("A", "B") VALUES
+('uuid-materia-1', 1),
+('uuid-materia-2', 1);
+
+-- Tabla: asistencias
+INSERT INTO "asistencias" ("date", "present", "alumnoId") VALUES
+('2025-08-01', true, 1),
+('2025-08-02', false, 1);
+
+-- Tabla: eventos
+INSERT INTO "eventos" ("titulo", "descripcion", "tipo_evento", "fecha_inicio", "fecha_fin", "lugar", "fecha_creacion", "fecha_actualizacion") VALUES
+('Reunión de Padres Semestral', 'Entrega de informes y planificación.', 'reunion_padres', '2025-08-15 18:00:00', '2025-08-15 20:00:00', 'Salón Principal', NOW(), NOW()),
+('Taller de Verano', 'Actividades recreativas y de aprendizaje.', 'taller', '2025-09-01 09:00:00', '2025-09-05 12:00:00', 'Patio Central', NOW(), NOW());
+
+-- Tabla: reportes
+INSERT INTO "reportes" ("fecha_entrega", "resumen", "conclusiones", "recomendaciones", "alumnoId", "licenciadoId", "fecha_creacion", "fecha_actualizacion") VALUES
+('2025-07-05', 'Hamilton es un niño muy inteligente, cariñoso y enérgico.', 'Se ha notado un avance significativo en su aprendizaje.', 'Continuar trabajando en conjunto padres, centro y terapeuta.', 1, 1, NOW(), NOW());
