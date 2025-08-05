@@ -1,12 +1,9 @@
 // src/components/forms/MaestroForm.tsx
 "use client";
 
-import { useForm } from "react-hook-form";
-import { MaestroSchema, MaestroValidationSchema } from "@/lib/formValidationSchemas";
-import { zodResolver } from "@hookform/resolvers/zod";
 import InputField from "@/components/InputField";
 // --- CORRECCIÓN AQUÍ ---
-import { maestro, maestros_estado, maestros_tipo_profesional } from "@prisma/client";
+import { maestro, maestros_estado, maestros_tipo_profesional, genero } from "@prisma/client";
 import { Dispatch, SetStateAction } from "react";
 
 type MaestroFormProps = {
@@ -17,76 +14,61 @@ type MaestroFormProps = {
 };
 
 const MaestroForm = ({ type, data, setOpen }: MaestroFormProps) => {
-    const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    } = useForm<MaestroSchema>({
-    resolver: zodResolver(MaestroValidationSchema),
-    defaultValues: {
-        ...data,
-      // @ts-ignore
-        fecha_de_nacimiento: data?.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split('T')[0] : undefined,
-      // @ts-ignore
-        fecha_ingreso: data?.fecha_ingreso ? new Date(data.fecha_ingreso).toISOString().split('T')[0] : undefined,
-    },
-    });
-
     return (
     <>
-        {data?.id && <input type="hidden" {...register("id")} />}
+        {data?.id && <input type="hidden" name="id" value={data.id} />}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InputField
             label="Nombre"
             name="nombre"
-            register={register("nombre")}
-            error={errors.nombre}
+            defaultValue={data?.nombre || ""}
         />
         <InputField
             label="Apellido"
             name="apellido"
-            register={register("apellido")}
-            error={errors.apellido}
+            defaultValue={data?.apellido || ""}
         />
         <InputField
             label="Documento de Identidad"
             name="documento_identidad"
-            register={register("documento_identidad")}
-            error={errors.documento_identidad}
+            defaultValue={data?.documento_identidad || ""}
         />
         <InputField
             label="Fecha de Nacimiento"
             name="fecha_de_nacimiento"
             type="date"
-            register={register("fecha_de_nacimiento")}
-            error={errors.fecha_de_nacimiento}
+            defaultValue={data?.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento).toISOString().split('T')[0] : ""}
         />
-        <InputField
-          label="Género"
-          name="genero"
-          register={register("genero")}
-          error={errors.genero}
-        />
+        <div className="flex flex-col gap-2">
+          <label className="text-sm font-medium">Género</label>
+          <select name="genero" className="p-2 border rounded-md" defaultValue={data?.genero || ""}>
+            <option value="">Seleccionar género</option>
+            {Object.values(genero).map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
         <InputField
           label="Teléfono Móvil"
           name="telefono_movil"
-          register={register("telefono_movil")}
-          error={errors.telefono_movil}
+          defaultValue={data?.telefono_movil || ""}
         />
         <InputField
           label="Email"
           name="email"
           type="email"
-          register={register("email")}
-          error={errors.email}
+          defaultValue={data?.email || ""}
         />
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Tipo Profesional</label>
           <select
-            {...register("tipo_profesional")}
+            name="tipo_profesional"
             className="p-2 border rounded-md"
-            defaultValue={data?.tipo_profesional ?? ''}
+            defaultValue={data?.tipo_profesional || ""}
           >
+            <option value="">Seleccionar tipo</option>
             {Object.values(maestros_tipo_profesional).map((t) => (
               <option key={t} value={t}>
                 {t}
@@ -96,7 +78,7 @@ const MaestroForm = ({ type, data, setOpen }: MaestroFormProps) => {
         </div>
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium">Estado</label>
-          <select {...register("estado")} className="p-2 border rounded-md" defaultValue={data?.estado ?? ''}>
+          <select name="estado" className="p-2 border rounded-md" defaultValue={data?.estado || "activo"}>
             {Object.values(maestros_estado).map((e) => (
               <option key={e} value={e}>
                 {e}
@@ -108,8 +90,7 @@ const MaestroForm = ({ type, data, setOpen }: MaestroFormProps) => {
           label="Fecha de Ingreso"
           name="fecha_ingreso"
           type="date"
-          register={register("fecha_ingreso")}
-          error={errors.fecha_ingreso}
+          defaultValue={data?.fecha_ingreso ? new Date(data.fecha_ingreso).toISOString().split('T')[0] : ""}
         />
       </div>
     </>

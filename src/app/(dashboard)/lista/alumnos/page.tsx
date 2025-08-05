@@ -21,12 +21,17 @@ const AlumnosPage = async ({
   const page = parseInt(searchParams?.page as string) || 1;
   const search = (searchParams?.search as string) || "";
 
-  // Lógica para buscar alumnos
+  // Lógica para buscar alumnos - SOLO ACTIVOS
   const alumnos = await prisma.alumno.findMany({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
+      AND: [
+        { estado: "activo" },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
     take: ITEM_PER_PAGE,
@@ -35,9 +40,14 @@ const AlumnosPage = async ({
   
   const count = await prisma.alumno.count({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
+      AND: [
+        { estado: "activo" },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
   });

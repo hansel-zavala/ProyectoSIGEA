@@ -94,6 +94,11 @@ const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
           <div className="p-8 bg-white rounded-md w-[90vw] md:max-w-2xl relative">
             <h2 className="text-xl font-semibold mb-4 capitalize">{formTitle}</h2>
             <form action={formAction}>
+              {/* Pasar el ID para operaciones de update y delete */}
+              {(type === 'update' || type === 'delete') && (
+                <input type="hidden" name="id" value={id ?? data?.id} />
+              )}
+              
               {type !== 'delete' && (
                 <FormBody
                   data={data}
@@ -102,13 +107,16 @@ const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
                   setOpen={setOpen}
                 />
               )}
-              {type === 'delete' && <input type="hidden" name="id" value={id} />}
+              
               <SubmitButton
                 title={buttonTitle}
                 className={`w-full mt-4 text-white font-bold py-2 px-4 rounded ${buttonClass}`}
               />
               {state.error && (
                 <p className="text-red-500 text-sm mt-2">{state.message || "¡Algo salió mal!"}</p>
+              )}
+              {state.success && (
+                <p className="text-green-500 text-sm mt-2">{state.message}</p>
               )}
             </form>
             <button

@@ -21,13 +21,18 @@ const PadresPage = async ({
   const page = parseInt(searchParams?.page as string) || 1;
   const search = (searchParams?.search as string) || "";
 
-  // Lógica para buscar padres
+  // Lógica para buscar padres - SOLO ACTIVOS
   const padres = await prisma.padre.findMany({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
+      AND: [
+        { activo: true },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
     take: ITEM_PER_PAGE,
@@ -36,10 +41,15 @@ const PadresPage = async ({
   
   const count = await prisma.padre.count({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
+      AND: [
+        { activo: true },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
   });

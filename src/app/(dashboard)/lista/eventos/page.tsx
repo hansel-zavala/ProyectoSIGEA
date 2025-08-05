@@ -19,10 +19,13 @@ const EventosPage = async ({
   const page = parseInt(searchParams?.page as string) || 1;
   const search = (searchParams?.search as string) || "";
 
-  // Lógica para buscar eventos
+  // Lógica para buscar eventos - EXCLUYENDO CANCELADOS
   const eventos = await prisma.eventos.findMany({
     where: {
-      titulo: { contains: search, mode: "insensitive" },
+      AND: [
+        { estado: { not: "cancelado" } },
+        { titulo: { contains: search, mode: "insensitive" } },
+      ],
     },
     take: ITEM_PER_PAGE,
     skip: ITEM_PER_PAGE * (page - 1),
@@ -31,7 +34,10 @@ const EventosPage = async ({
   
   const count = await prisma.eventos.count({
     where: {
-      titulo: { contains: search, mode: "insensitive" },
+      AND: [
+        { estado: { not: "cancelado" } },
+        { titulo: { contains: search, mode: "insensitive" } },
+      ],
     },
   });
 

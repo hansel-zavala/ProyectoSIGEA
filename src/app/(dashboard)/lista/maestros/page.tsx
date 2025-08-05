@@ -21,13 +21,18 @@ const MaestrosPage = async ({
   const page = parseInt(searchParams?.page as string) || 1;
   const search = (searchParams?.search as string) || "";
 
-  // Lógica para buscar maestros
+  // Lógica para buscar maestros - SOLO ACTIVOS
   const maestros = await prisma.maestro.findMany({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
+      AND: [
+        { estado: "activo" },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
     take: ITEM_PER_PAGE,
@@ -36,10 +41,15 @@ const MaestrosPage = async ({
   
   const count = await prisma.maestro.count({
     where: {
-      OR: [
-        { nombre: { contains: search, mode: "insensitive" } },
-        { apellido: { contains: search, mode: "insensitive" } },
-        { email: { contains: search, mode: "insensitive" } },
+      AND: [
+        { estado: "activo" },
+        {
+          OR: [
+            { nombre: { contains: search, mode: "insensitive" } },
+            { apellido: { contains: search, mode: "insensitive" } },
+            { email: { contains: search, mode: "insensitive" } },
+          ],
+        },
       ],
     },
   });

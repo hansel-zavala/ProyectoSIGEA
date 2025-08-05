@@ -93,20 +93,150 @@ export const createMatricula = async (currentState: ActionState, formData: FormD
   }
 };
 
-
-// --- OTRAS ACCIONES DE CREACIÓN (Mantenemos las que ya tenías) ---
+// --- ACCIONES DE CREACIÓN MEJORADAS ---
 export const createAlumno = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
-    return { success: false, error: true, message: "Usar el formulario de Matrícula" };
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    // Convierte campos booleanos y numéricos
+    const preparedData = {
+      nombre: data.nombre as string,
+      apellido: data.apellido as string,
+      lugar_de_nacimiento: data.lugar_de_nacimiento as string,
+      fecha_de_nacimiento: new Date(data.fecha_de_nacimiento as string),
+      direccion: data.direccion as string,
+      telefono_fijo: data.telefono_fijo as string,
+      telefono_movil: data.telefono_movil as string,
+      institucion_procedencia: data.institucion_procedencia as string,
+      recibio_evaluacion: data.recibio_evaluacion === 'on',
+      usa_medicamentos: data.usa_medicamentos === 'on',
+      medicamentos_detalle: data.medicamentos_detalle as string,
+      alergias: data.alergias === 'on',
+      alergias_detalle: data.alergias_detalle as string,
+      observaciones_medicas: data.observaciones_medicas as string,
+      genero: data.genero as any,
+      documento_identidad: data.documento_identidad as string,
+      jornada_actual: data.jornada_actual as any,
+      atencion_grupal: data.atencion_grupal === 'on',
+      atencion_individual: data.atencion_individual === 'on',
+      atencion_distancia: data.atencion_distancia === 'on',
+      atencion_pre_vocacional: data.atencion_pre_vocacional === 'on',
+      atencion_vocacional: data.atencion_vocacional === 'on',
+      terapia_domicilio: data.terapia_domicilio === 'on',
+      inclusion_escolar: data.inclusion_escolar === 'on',
+      educacion_fisica: data.educacion_fisica === 'on',
+      terapeutaPrincipalId: data.terapeutaPrincipalId ? Number(data.terapeutaPrincipalId) : undefined,
+      padreId: data.padreId ? Number(data.padreId) : undefined,
+    };
+
+    await prisma.alumno.create({
+      data: preparedData
+    });
+
+    revalidatePath("/lista/alumnos");
+    return { success: true, error: false, message: "Alumno creado con éxito." };
+  } catch (error) {
+    console.error("Error al crear alumno:", error);
+    return { success: false, error: true, message: "Error del servidor al crear alumno." };
+  }
 };
+
 export const createPadre = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
-    return { success: false, error: true, message: "Función no implementada" };
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    await prisma.padre.create({
+      data: {
+        nombre: data.nombre as string,
+        apellido: data.apellido as string,
+        documento_identidad: data.documento_identidad as string,
+        tipo_parentesco: data.tipo_parentesco as any,
+        direccion: data.direccion as string,
+        profesion: data.profesion as string,
+        lugar_trabajo: data.lugar_trabajo as string,
+        telefono_fijo: data.telefono_fijo as string,
+        telefono_movil: data.telefono_movil as string,
+        email: data.email as string,
+        fecha_de_nacimiento: data.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento as string) : undefined,
+        genero: data.genero as any,
+      }
+    });
+
+    revalidatePath("/lista/padres");
+    return { success: true, error: false, message: "Padre creado con éxito." };
+  } catch (error) {
+    console.error("Error al crear padre:", error);
+    return { success: false, error: true, message: "Error del servidor al crear padre." };
+  }
 };
+
 export const createMaestro = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
-    return { success: false, error: true, message: "Función no implementada" };
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    await prisma.maestro.create({
+      data: {
+        nombre: data.nombre as string,
+        apellido: data.apellido as string,
+        documento_identidad: data.documento_identidad as string,
+        fecha_de_nacimiento: data.fecha_de_nacimiento ? new Date(data.fecha_de_nacimiento as string) : undefined,
+        genero: data.genero as any,
+        telefono_movil: data.telefono_movil as string,
+        email: data.email as string,
+        tipo_profesional: data.tipo_profesional as any,
+        fecha_ingreso: data.fecha_ingreso ? new Date(data.fecha_ingreso as string) : undefined,
+      }
+    });
+
+    revalidatePath("/lista/maestros");
+    return { success: true, error: false, message: "Maestro creado con éxito." };
+  } catch (error) {
+    console.error("Error al crear maestro:", error);
+    return { success: false, error: true, message: "Error del servidor al crear maestro." };
+  }
 };
+
 export const createEvento = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
-    return { success: false, error: true, message: "Función no implementada" };
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    await prisma.eventos.create({
+      data: {
+        titulo: data.titulo as string,
+        descripcion: data.descripcion as string,
+        tipo_evento: data.tipo_evento as any,
+        fecha_inicio: new Date(data.fecha_inicio as string),
+        fecha_fin: new Date(data.fecha_fin as string),
+        lugar: data.lugar as string,
+        es_publico: data.es_publico === 'on',
+        observaciones: data.observaciones as string,
+      }
+    });
+
+    revalidatePath("/lista/eventos");
+    return { success: true, error: false, message: "Evento creado con éxito." };
+  } catch (error) {
+    console.error("Error al crear evento:", error);
+    return { success: false, error: true, message: "Error del servidor al crear evento." };
+  }
 };
+
 export const createMateria = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
-    return { success: false, error: true, message: "Función no implementada" };
+  try {
+    const data = Object.fromEntries(formData.entries());
+    
+    await prisma.materia.create({
+      data: {
+        nombre: data.nombre as string,
+        descripcion: data.descripcion as string,
+        maestroId: Number(data.maestroId),
+      }
+    });
+
+    revalidatePath("/lista/trabajoSesiones");
+    return { success: true, error: false, message: "Materia creada con éxito." };
+  } catch (error) {
+    console.error("Error al crear materia:", error);
+    return { success: false, error: true, message: "Error del servidor al crear materia." };
+  }
 };

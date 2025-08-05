@@ -8,7 +8,7 @@ type InputFieldProps = {
   label: string;
   name: string;
   type?: string;
-  register: UseFormRegisterReturn; // <--- CORRECCIÓN 1: Tipo más específico
+  register?: UseFormRegisterReturn; // Opcional para formularios HTML nativos
   error?: FieldError;
   defaultValue?: string;
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
@@ -33,7 +33,7 @@ const InputField = ({
       <input
         id={name}
         type={type}
-        {...register} // <--- CORRECCIÓN 2: Se pasa el 'register' directamente
+        {...(register || { name })} // Pasa register si existe, o name si no
         defaultValue={defaultValue}
         className="p-2 border rounded-md"
         {...inputProps}

@@ -71,7 +71,9 @@ export const MatriculaValidationSchema = z.object({
   nombrePadre: z.string().min(1, "El nombre del padre es obligatorio"),
   apellidoPadre: z.string().min(1, "El apellido del padre es obligatorio"),
   direccionPadre: z.string().optional().nullable(),
+  telefono_fijo_padre: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
   telefono_movil_padre: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
+  documento_identidad_padre: z.string().optional().nullable(),
   tipo_parentesco: z.nativeEnum(padre_tipo_parentesco),
 
   // --- Campo del Licenciado ---
@@ -84,14 +86,37 @@ export type MatriculaSchema = z.infer<typeof MatriculaValidationSchema>;
 export const PadreValidationSchema = z.object({
   id: z.number().optional(),
   nombre: z.string().min(1, "El nombre es obligatorio"),
-  // ... (completa los demás campos si los necesitas)
+  apellido: z.string().min(1, "El apellido es obligatorio"),
+  documento_identidad: z.string().optional().nullable(),
+  tipo_parentesco: z.nativeEnum(padre_tipo_parentesco),
+  direccion: z.string().optional().nullable(),
+  profesion: z.string().optional().nullable(),
+  lugar_trabajo: z.string().optional().nullable(),
+  telefono_fijo: z.string().optional().nullable(),
+  telefono_movil: z.string().optional().nullable(),
+  email: z.string().email("El email debe ser válido").optional().nullable(),
+  fecha_de_nacimiento: z.coerce.date().optional().nullable(),
+  genero: z.nativeEnum(genero).optional(),
+  // Campos opcionales que pueden estar en el modelo
+  idusuario: z.string().optional().nullable(),
+  activo: z.boolean().optional(),
 });
 export type PadreSchema = z.infer<typeof PadreValidationSchema>;
 
 export const MaestroValidationSchema = z.object({
   id: z.number().optional(),
   nombre: z.string().min(1, "El nombre es obligatorio"),
-  // ... (completa los demás campos si los necesitas)
+  apellido: z.string().min(1, "El apellido es obligatorio"),
+  documento_identidad: z.string().min(1, "El documento de identidad es obligatorio"),
+  fecha_de_nacimiento: z.coerce.date().optional().nullable(),
+  genero: z.nativeEnum(genero).optional(),
+  telefono_movil: z.string().min(1, "El teléfono móvil es obligatorio"),
+  email: z.string().email("El email debe ser válido").min(1, "El email es obligatorio"),
+  tipo_profesional: z.nativeEnum(maestros_tipo_profesional),
+  estado: z.nativeEnum(maestros_estado).optional(),
+  fecha_ingreso: z.coerce.date().optional().nullable(),
+  // Campos opcionales que pueden estar en el modelo
+  idusuario: z.string().optional().nullable(),
 });
 export type MaestroSchema = z.infer<typeof MaestroValidationSchema>;
 

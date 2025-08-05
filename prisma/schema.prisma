@@ -2,7 +2,7 @@
 
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -121,6 +121,7 @@ model Materia {
   id          String   @id @default(uuid())
   nombre      String
   descripcion String?
+  estado      materia_estado? @default(activa)
 
   maestroId Int
   maestro   maestro @relation(fields: [maestroId], references: [id])
@@ -221,4 +222,8 @@ enum maestros_estado {
 enum alumno_jornada_actual { 
   matutina 
   vespertina 
+}
+enum materia_estado {
+  activa
+  inactiva
 }
