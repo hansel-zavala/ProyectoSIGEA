@@ -9,6 +9,7 @@ import {
   maestros_tipo_profesional,
   maestros_estado
 } from "@prisma/client";
+import { teachersData } from "./data";
 
 // --- ESQUEMA DE VALIDACIÓN PARA ALUMNO (VERSIÓN FINAL) ---
 export const AlumnoValidationSchema = z.object({
@@ -18,10 +19,8 @@ export const AlumnoValidationSchema = z.object({
   fecha_de_nacimiento: z.coerce.date(),
   lugar_de_nacimiento: z.string().min(1, "El lugar de nacimiento es obligatorio"),
   direccion: z.string().optional().nullable(),
-  telefono_fijo: z.string().optional().nullable(),
-  telefono_movil: z.string().optional().nullable(),
   genero: z.nativeEnum(genero),
-  institucion_procedencia: z.string().min(1, "La institución es obligatoria"),
+  institucion_procedencia: z.string().optional().nullable(),
   jornada_actual: z.nativeEnum(alumno_jornada_actual).optional(),
   recibio_evaluacion: z.boolean().optional(),
   usa_medicamentos: z.boolean().optional(),
@@ -40,7 +39,7 @@ export const AlumnoValidationSchema = z.object({
   // --- CAMPOS QUE NO ESTÁN EN EL FORMULARIO PERO SÍ EN EL TIPO ---
   // Los hacemos opcionales para que la validación no falle
   idusuario: z.string().optional().nullable(),
-  documento_identidad: z.string().optional().nullable(),
+  documento_identidad: z.string().min(1, "El número de identidad es obligatorio"),
   estado: z.nativeEnum(alumno_estado).optional(),
   fecha_evaluacion: z.coerce.date().optional().nullable(),
   maestro_actual_id: z.coerce.number().optional().nullable(),
@@ -55,10 +54,8 @@ export const MatriculaValidationSchema = z.object({
   apellidoAlumno: z.string().min(1, "El apellido del alumno es obligatorio"),
   fecha_de_nacimiento: z.coerce.date({required_error: "La fecha de nacimiento es obligatoria"}),
   lugar_de_nacimiento: z.string().min(1, "El lugar de nacimiento es obligatorio"),
-  direccion: z.string().optional().nullable(),
-  telefono_fijo: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
-  telefono_movil: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
-  institucion_procedencia: z.string().min(1, "La institución es obligatoria"),
+  direccion: z.string().min(1, "La dirección es obligatoria"),
+  institucion_procedencia: z.string().optional().nullable(),
   recibio_evaluacion: z.boolean().optional(),
   usa_medicamentos: z.boolean().optional(),
   medicamentos_detalle: z.string().optional().nullable(),
@@ -66,14 +63,25 @@ export const MatriculaValidationSchema = z.object({
   alergias_detalle: z.string().optional().nullable(),
   observaciones_medicas: z.string().optional().nullable(),
   genero: z.nativeEnum(genero),
+  documento_identidad: z.string().min(1, "El número de identidad es obligatorio"),
+
+  atencion_grupal: z.boolean().optional(),
+  atencion_individual: z.boolean().optional(),
+  atencion_distancia: z.boolean().optional(),
+  atencion_pre_vocacional: z.boolean().optional(),
+  atencion_vocacional: z.boolean().optional(),
+  terapia_domicilio: z.boolean().optional(),
+  inclusion_escolar: z.boolean().optional(),
+  educacion_fisica: z.boolean().optional(),
+
 
   // --- Campos del Padre ---
   nombrePadre: z.string().min(1, "El nombre del padre es obligatorio"),
   apellidoPadre: z.string().min(1, "El apellido del padre es obligatorio"),
-  direccionPadre: z.string().optional().nullable(),
+  direccionPadre: z.string().min(1, "La dirección es obligatoria"),
   telefono_fijo_padre: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
   telefono_movil_padre: z.string().regex(/^[0-9-]*$/, "Solo se permiten números y guiones").optional().nullable(),
-  documento_identidad_padre: z.string().optional().nullable(),
+  documento_identidad_padre: z.string().min(1, "El número de identidad es obligatorio"),
   tipo_parentesco: z.nativeEnum(padre_tipo_parentesco),
 
   // --- Campo del Licenciado ---

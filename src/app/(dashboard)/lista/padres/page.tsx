@@ -3,56 +3,55 @@
 import prisma from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import Image from "next/image";
-import Link from "next/link";
-import FormModal from "@/components/FormModal"; // <-- 1. IMPORTA FormModal
+import FormModal from "@/components/FormModal";
 import TableSearch from "@/components/TableSearch";
 import Pagination from "@/components/Paginacion";
 import { ITEM_PER_PAGE } from "@/lib/settings";
+// Importamos los tipos necesarios
+import { padre, alumno, Prisma } from "@prisma/client";
+
+// Creamos un tipo nuevo que incluye la lista de alumnos (hijos)
+type PadreConAlumnos = padre & {
+  alumnos: alumno[];
+};
 
 const PadresPage = async ({
   searchParams,
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) => {
-  // Obtiene el usuario y el rol
   const user = await currentUser();
   const role = user?.publicMetadata?.role;
 
   const page = parseInt(searchParams?.page as string) || 1;
   const search = (searchParams?.search as string) || "";
 
-  // Lógica para buscar padres - SOLO ACTIVOS
-  const padres = await prisma.padre.findMany({
-    where: {
-      AND: [
-        { activo: true },
-        {
-          OR: [
-            { nombre: { contains: search, mode: "insensitive" } },
-            { apellido: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-          ],
-        },
-      ],
-    },
-    take: ITEM_PER_PAGE,
-    skip: ITEM_PER_PAGE * (page - 1),
-  });
-  
-  const count = await prisma.padre.count({
-    where: {
-      AND: [
-        { activo: true },
-        {
-          OR: [
-            { nombre: { contains: search, mode: "insensitive" } },
-            { apellido: { contains: search, mode: "insensitive" } },
-            { email: { contains: search, mode: "insensitive" } },
-          ],
-        },
-      ],
-    },
-  });
+  const whereCondition: Prisma.padreWhereInput = {
+    AND: [
+      { activo: true },
+      {
+        OR: [
+          { nombre: { contains: search, mode: "insensitive" } },
+          { apellido: { contains: search, mode: "insensitive" } },
+          { email: { contains: search, mode: "insensitive" } },
+        ],
+      },
+    ],
+  };
+
+  // --- 1. CORRECCIÓN EN LA CONSULTA ---
+  // Le pedimos a Prisma que incluya los datos de los alumnos relacionados
+  const [padres, count] = await Promise.all([
+    prisma.padre.findMany({
+      where: whereCondition,
+      take: ITEM_PER_PAGE,
+      skip: ITEM_PER_PAGE * (page - 1),
+      include: {
+        alumnos: true, // <-- INCLUIMOS LOS ALUMNOS (HIJOS)
+      },
+    }),
+    prisma.padre.count({ where: whereCondition }),
+  ]);
 
   return (
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
@@ -67,13 +66,14 @@ const PadresPage = async ({
         <thead className="text-xs text-gray-700 uppercase bg-gray-50">
           <tr>
             <th scope="col" className="px-6 py-3">Nombre Completo</th>
-            <th scope="col" className="px-6 py-3 hidden md:table-cell">Email</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Hijo(s) Asignado(s)</th>
             <th scope="col" className="px-6 py-3 hidden lg:table-cell">Teléfono</th>
+            <th scope="col" className="px-6 py-3 hidden md:table-cell">Direccion</th>
             <th scope="col" className="px-6 py-3">Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {padres.map((item) => (
+          {padres.map((item: PadreConAlumnos) => (
             <tr key={item.id} className="bg-white border-b">
               <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap">
                 <div className="flex items-center gap-2">
@@ -81,11 +81,18 @@ const PadresPage = async ({
                   {item.nombre} {item.apellido}
                 </div>
               </td>
-              <td className="px-6 py-4 hidden md:table-cell">{item.email}</td>
+              {/* --- 2. NUEVA COLUMNA EN LA TABLA --- */}
+              <td className="px-6 py-4 hidden md:table-cell">
+                {item.alumnos.length > 0 ? (
+                  item.alumnos.map(a => `${a.nombre} ${a.apellido}`).join(', ')
+                ) : (
+                  <span className="text-gray-400">Sin asignar</span>
+                )}
+              </td>
               <td className="px-6 py-4 hidden lg:table-cell">{item.telefono_movil}</td>
+              <td className="px-6 py-4 hidden md:table-cell">{item.direccion}</td>
               <td className="px-6 py-4">
                 <div className="flex items-center gap-2">
-                  {/* --- 2. CORRECCIÓN AQUÍ: Usa FormModal --- */}
                   {role === "admin" && (
                     <>
                       <FormModal table="padre" type="update" data={item} />

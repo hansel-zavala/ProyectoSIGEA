@@ -17,10 +17,18 @@ export const createMatricula = async (currentState: ActionState, formData: FormD
   const preparedData = {
     ...data,
     terapeutaPrincipalId: data.terapeutaPrincipalId ? Number(data.terapeutaPrincipalId) : undefined,
-    // Convierte checkboxes
     recibio_evaluacion: data.recibio_evaluacion === 'on',
     usa_medicamentos: data.usa_medicamentos === 'on',
     alergias: data.alergias === 'on',
+    // ... convierte aquí otros checkboxes
+    atencion_grupal: data.atencion_grupal === 'on',
+    atencion_individual: data.atencion_individual === 'on',
+    atencion_distancia: data.atencion_distancia === 'on',
+    atencion_pre_vocacional: data.atencion_pre_vocacional === 'on',
+    atencion_vocacional: data.atencion_vocacional === 'on',
+    terapia_domicilio: data.terapia_domicilio === 'on',
+    inclusion_escolar: data.inclusion_escolar === 'on',
+    educacion_fisica: data.educacion_fisica === 'on',
   };
 
   const validatedFields = MatriculaValidationSchema.safeParse(preparedData);
@@ -31,31 +39,24 @@ export const createMatricula = async (currentState: ActionState, formData: FormD
   }
 
   const {
-    // Campos del Alumno
     nombreAlumno, apellidoAlumno, fecha_de_nacimiento, lugar_de_nacimiento, direccion,
-    telefono_fijo, telefono_movil, institucion_procedencia, recibio_evaluacion,
+    institucion_procedencia, recibio_evaluacion,
     usa_medicamentos, medicamentos_detalle, alergias, alergias_detalle, observaciones_medicas,
-    
-    // Campos del Padre
-    nombrePadre, apellidoPadre, direccionPadre, telefono_movil_padre, tipo_parentesco,
-    
-    // Asignación
-    terapeutaPrincipalId,
-    
-    // Campo que nos faltaba
-    genero
+    genero, documento_identidad, atencion_grupal, atencion_individual, atencion_distancia,
+    atencion_pre_vocacional, atencion_vocacional, terapia_domicilio, inclusion_escolar, educacion_fisica,
+    nombrePadre, apellidoPadre, direccionPadre, telefono_movil_padre, tipo_parentesco, documento_identidad_padre,
+    terapeutaPrincipalId
   } = validatedFields.data;
 
   try {
-    // Usamos una transacción para asegurar que todo se guarde correctamente
     await prisma.$transaction(async (tx) => {
-      // 1. Crea el padre
       const nuevoPadre = await tx.padre.create({
         data: {
           nombre: nombrePadre,
           apellido: apellidoPadre,
           direccion: direccionPadre,
           telefono_movil: telefono_movil_padre,
+          documento_identidad: documento_identidad_padre,
           tipo_parentesco: tipo_parentesco,
         }
       });
@@ -67,10 +68,8 @@ export const createMatricula = async (currentState: ActionState, formData: FormD
           apellido: apellidoAlumno,
           fecha_de_nacimiento: fecha_de_nacimiento,
           lugar_de_nacimiento: lugar_de_nacimiento,
-          institucion_procedencia: institucion_procedencia,
+          institucion_procedencia: institucion_procedencia ?? "",
           direccion: direccion,
-          telefono_fijo: telefono_fijo,
-          telefono_movil: telefono_movil,
           recibio_evaluacion: recibio_evaluacion,
           usa_medicamentos: usa_medicamentos,
           medicamentos_detalle: medicamentos_detalle,
@@ -78,6 +77,9 @@ export const createMatricula = async (currentState: ActionState, formData: FormD
           alergias_detalle: alergias_detalle,
           observaciones_medicas: observaciones_medicas,
           genero: genero,
+          documento_identidad: documento_identidad,
+          atencion_grupal, atencion_individual, atencion_distancia, atencion_pre_vocacional,
+          atencion_vocacional, terapia_domicilio, inclusion_escolar, educacion_fisica,
           padreId: nuevoPadre.id,
           terapeutaPrincipalId: terapeutaPrincipalId,
         }
