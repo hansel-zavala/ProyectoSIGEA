@@ -5,33 +5,36 @@ import { useEffect, useState } from "react";
 import { useFormState } from "react-dom";
 import { Dispatch, SetStateAction } from "react";
 
-// Importa todos los formularios y acciones
+// Importa TODOS los formularios y acciones
 import AlumnoForm from "./forms/AlumnoForm";
 import MaestroForm from "./forms/MaestroForm";
 import PadreForm from "./forms/PadreForm";
 import EventoForm from "./forms/EventoForm";
 import MateriaForm from "./forms/MateriaForm";
-import { createAlumno, createMaestro, createPadre, createEvento, createMateria } from "@/lib/actions/create";
-import { updateAlumno, updateMaestro, updatePadre, updateEvento, updateMateria } from "@/lib/actions/update";
-import { deleteAlumno, deleteMaestro, deletePadre, deleteEvento, deleteMateria } from "@/lib/actions/delete";
-import SubmitButton from "@/components/SubmitButton";
+import LeccionForm from "./forms/LeccionForm";
 
-// Define las props que el componente recibirá
+import { createAlumno, createMaestro, createPadre, createEvento, createMateria, createLeccion } from "@/lib/actions/create";
+import { updateAlumno, updateMaestro, updatePadre, updateEvento, updateMateria, updateLeccion } from "@/lib/actions/update";
+// --- CORRECCIÓN AQUÍ: Importa deleteLeccion ---
+import { deleteAlumno, deleteMaestro, deletePadre, deleteEvento, deleteMateria, deleteLeccion } from "@/lib/actions/delete";
+import SubmitButton from "@/components/SubmitButton";
+import { ActionState } from "@/lib/types"; // <-- Importa el tipo desde el archivo central
+
 export type FormModalProps = {
-  table: "maestro" | "alumno" | "padre" | "evento" | "materia";
+  table: "maestro" | "alumno" | "padre" | "evento" | "materia" | "leccion";
   type: "create" | "update" | "delete";
   data?: any;
   id?: number | string;
   relatedData?: any;
 };
 
-// Mapas para seleccionar el componente y la acción correcta dinámicamente
 const FormBodyMap = {
   alumno: AlumnoForm,
   maestro: MaestroForm,
   padre: PadreForm,
   evento: EventoForm,
   materia: MateriaForm,
+  leccion: LeccionForm,
 };
 
 const actionMap = {
@@ -41,6 +44,7 @@ const actionMap = {
     padre: createPadre,
     evento: createEvento,
     materia: createMateria,
+    leccion: createLeccion,
   },
   update: {
     alumno: updateAlumno,
@@ -48,6 +52,7 @@ const actionMap = {
     padre: updatePadre,
     evento: updateEvento,
     materia: updateMateria,
+    leccion: updateLeccion,
   },
   delete: {
     alumno: deleteAlumno,
@@ -55,15 +60,11 @@ const actionMap = {
     padre: deletePadre,
     evento: deleteEvento,
     materia: deleteMateria,
+    leccion: deleteLeccion,
   },
 };
 
-// Define el tipo del estado para que incluya el mensaje
-type ActionState = {
-    success: boolean;
-    error: boolean;
-    message: string;
-};
+// --- CORRECCIÓN AQUÍ: Se eliminó la declaración duplicada de ActionState ---
 
 const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
   const [open, setOpen] = useState(false);
@@ -75,7 +76,7 @@ const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
 
   useEffect(() => {
     if (state.success) {
-      setOpen(false); // Cierra el modal si la operación fue exitosa
+      setOpen(false);
     }
   }, [state.success]);
   
@@ -91,14 +92,9 @@ const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
 
       {open && (
         <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
-          <div className="p-8 bg-white rounded-md w-[90vw] md:max-w-2xl relative">
+          <div className="p-8 bg-white rounded-md w-[90vw] md:max-w-2xl relative max-h-[90vh] overflow-y-auto">
             <h2 className="text-xl font-semibold mb-4 capitalize">{formTitle}</h2>
             <form action={formAction}>
-              {/* Pasar el ID para operaciones de update y delete */}
-              {(type === 'update' || type === 'delete') && (
-                <input type="hidden" name="id" value={id ?? data?.id} />
-              )}
-              
               {type !== 'delete' && (
                 <FormBody
                   data={data}
@@ -107,16 +103,13 @@ const FormModal = ({ table, type, data, id, relatedData }: FormModalProps) => {
                   setOpen={setOpen}
                 />
               )}
-              
+              {type === 'delete' && <input type="hidden" name="id" value={id} />}
               <SubmitButton
                 title={buttonTitle}
                 className={`w-full mt-4 text-white font-bold py-2 px-4 rounded ${buttonClass}`}
               />
               {state.error && (
                 <p className="text-red-500 text-sm mt-2">{state.message || "¡Algo salió mal!"}</p>
-              )}
-              {state.success && (
-                <p className="text-green-500 text-sm mt-2">{state.message}</p>
               )}
             </form>
             <button

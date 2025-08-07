@@ -90,6 +90,21 @@ async function softDeleteRecord(model: keyof typeof prisma, id: string, revalida
   }
 }
 
+export const deleteLeccion = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
+    const id = formData.get("id") as string;
+    try {
+        // En lugar de borrar, podrías añadir un campo 'estado' al modelo Leccion
+        // y actualizarlo a 'inactiva'. Por ahora, haremos un borrado real.
+        await prisma.leccion.delete({
+            where: { id: parseInt(id) },
+        });
+        revalidatePath("/lista/lecciones");
+        return { success: true, error: false, message: "Lección eliminada." };
+    } catch (error) {
+        return { success: false, error: true, message: "Error al eliminar la lección." };
+    }
+};
+
 export const deleteAlumno = (currentState: ActionState, data: FormData) => softDeleteRecord("alumno", data.get("id") as string, "/lista/alumnos");
 export const deletePadre = (currentState: ActionState, data: FormData) => softDeleteRecord("padre", data.get("id") as string, "/lista/padres");
 export const deleteMaestro = (currentState: ActionState, data: FormData) => softDeleteRecord("maestro", data.get("id") as string, "/lista/maestros");

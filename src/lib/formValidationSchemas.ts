@@ -128,3 +128,13 @@ export const MaestroValidationSchema = z.object({
 });
 export type MaestroSchema = z.infer<typeof MaestroValidationSchema>;
 
+export const LeccionValidationSchema = z.object({
+  id: z.number().optional(),
+  titulo: z.string().min(1, "El título es obligatorio"),
+  objetivo: z.string().min(1, "El objetivo es obligatorio"),
+  descripcion: z.string().min(1, "La descripción es obligatoria"),
+  categoria: z.string().optional().nullable(),
+  habilidades_clave: z.string().optional().nullable(),
+});
+
+export type LeccionSchema = z.infer<typeof LeccionValidationSchema>;

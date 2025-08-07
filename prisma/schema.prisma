@@ -36,6 +36,7 @@ model maestro {
   materias            Materia[]
   alumnosAsignados    alumno[]                  @relation("TerapeutaPrincipal")
   reportesGenerados   Reporte[]
+  leccionesCreadas    Leccion[]
 }
 
 model padre {
@@ -169,6 +170,27 @@ model ReporteItem {
   reporte     Reporte @relation(fields: [reporteId], references: [id])
 
   @@map("reporte_items")
+}
+
+// --- NUEVO MODELO PARA LECCIONES (WIKI) ---
+model Leccion {
+  id                  Int      @id @default(autoincrement())
+  titulo              String
+  objetivo            String   @db.Text
+  descripcion         String   @db.Text
+  
+  // --- CAMPOS RECOMENDADOS ---
+  categoria           String?  // Ej: Sensorial, Lenguaje, etc.
+  habilidades_clave   String?  // Ej: Contacto visual, Motricidad fina
+
+  // Relación para saber quién creó la lección (opcional)
+  creadoPorId         Int?
+  creadoPor           maestro? @relation(fields: [creadoPorId], references: [id])
+
+  fecha_creacion      DateTime @default(now())
+  fecha_actualizacion DateTime @updatedAt
+
+  @@map("lecciones")
 }
 
 // --- ENUMS ---

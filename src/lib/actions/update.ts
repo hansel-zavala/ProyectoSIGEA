@@ -2,6 +2,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { LeccionValidationSchema } from "../formValidationSchemas";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/lib/types";
 
@@ -81,6 +82,25 @@ async function updateRecord(model: keyof typeof prisma, data: any, revalidationP
     return { success: false, error: true, message: "Error del servidor al actualizar." };
   }
 }
+
+export const updateLeccion = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
+    const data = Object.fromEntries(formData.entries());
+    const preparedData = { ...data, id: data.id ? Number(data.id) : undefined };
+    const validatedFields = LeccionValidationSchema.safeParse(preparedData);
+
+    if (!validatedFields.success) return { success: false, error: true, message: "Datos inválidos." };
+    
+    const { id, ...dataToUpdate } = validatedFields.data;
+    if (!id) return { success: false, error: true, message: "ID no proporcionado." };
+
+    try {
+        await prisma.leccion.update({ where: { id }, data: dataToUpdate });
+        revalidatePath("/lista/lecciones");
+        return { success: true, error: false, message: "Lección actualizada con éxito." };
+    } catch (error) {
+        return { success: false, error: true, message: "Error del servidor al actualizar." };
+    }
+};
 
 export const updateAlumno = (currentState: ActionState, data: any) => updateRecord("alumno", data, "/lista/alumnos");
 export const updatePadre = (currentState: ActionState, data: any) => updateRecord("padre", data, "/lista/padres");

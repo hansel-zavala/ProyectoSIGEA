@@ -2,6 +2,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { LeccionValidationSchema } from "../formValidationSchemas";
 import { revalidatePath } from "next/cache";
 import { ActionState } from "@/lib/types";
 import { 
@@ -241,4 +242,21 @@ export const createMateria = async (currentState: ActionState, formData: FormDat
     console.error("Error al crear materia:", error);
     return { success: false, error: true, message: "Error del servidor al crear materia." };
   }
+};
+
+export const createLeccion = async (currentState: ActionState, formData: FormData): Promise<ActionState> => {
+    const data = Object.fromEntries(formData.entries());
+    const validatedFields = LeccionValidationSchema.safeParse(data);
+
+    if (!validatedFields.success) {
+        return { success: false, error: true, message: "Datos inválidos." };
+    }
+    const { id, ...dataToCreate } = validatedFields.data;
+    try {
+        await prisma.leccion.create({ data: dataToCreate });
+        revalidatePath("/lista/lecciones");
+        return { success: true, error: false, message: "Lección creada con éxito." };
+    } catch (error) {
+        return { success: false, error: true, message: "Error del servidor al crear la lección." };
+    }
 };

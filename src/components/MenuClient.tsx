@@ -63,7 +63,7 @@ const MenuClient = ({ role }: MenuClientProps) => {
     },
     {
       title: "Lecciones",
-      path: "/lista/",
+      path: "/lista/lecciones",
       icon: <BookType />,
       roles: ["admin", "teacher"],
     },
